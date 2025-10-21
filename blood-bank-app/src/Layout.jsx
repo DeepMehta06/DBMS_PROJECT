@@ -1,0 +1,41 @@
+import React from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import Sidebar from './components/layout/Sidebar';
+import Header from './components/layout/Header';
+
+const Layout = () => {
+  const location = useLocation();
+  
+  // Get page title based on current route
+  const getPageTitle = () => {
+    const path = location.pathname;
+    switch (path) {
+      case '/dashboard':
+        return 'Dashboard';
+      case '/inventory':
+        return 'Blood Inventory';
+      case '/donors':
+        return 'Donors Management';
+      case '/recipients':
+        return 'Recipients Management';
+      case '/hospitals':
+        return 'Hospital Network';
+      default:
+        return 'Dashboard';
+    }
+  };
+
+  return (
+    <div className="flex h-screen bg-gray-100">
+      <Sidebar />
+      <div className="flex-1 ml-64 flex flex-col overflow-hidden">
+        <Header title={getPageTitle()} />
+        <main className="flex-1 overflow-y-auto p-6">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default Layout;
