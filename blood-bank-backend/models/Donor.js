@@ -1,47 +1,56 @@
 const mongoose = require('mongoose');
 
 const donorSchema = new mongoose.Schema({
-  name: {
+  Bd_Id: {
+    type: Number,
+    required: true,
+    unique: true
+  },
+  Bd_Name: {
     type: String,
     required: [true, 'Please provide donor name'],
     trim: true,
+    maxlength: [100, 'Name cannot exceed 100 characters']
   },
-  bloodGroup: {
-    type: String,
-    required: [true, 'Please provide blood group'],
-    enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
-  },
-  age: {
+  Bd_Age: {
     type: Number,
     required: [true, 'Please provide age'],
     min: [18, 'Donor must be at least 18 years old'],
-    max: [65, 'Donor must be at most 65 years old'],
+    max: [65, 'Donor must be at most 65 years old']
   },
-  sex: {
+  Bd_Sex: {
     type: String,
     required: [true, 'Please provide sex'],
-    enum: ['Male', 'Female', 'Other'],
+    enum: ['M', 'F'],
+    maxlength: 1
   },
-  phone: {
+  Bd_Phone: {
     type: String,
     required: [true, 'Please provide phone number'],
     trim: true,
+    maxlength: [15, 'Phone number cannot exceed 15 characters']
   },
-  city: {
+  Bd_Bgroup: {
     type: String,
-    required: [true, 'Please provide city'],
-    trim: true,
+    required: [true, 'Please provide blood group'],
+    enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+    maxlength: 3
   },
-  registrationDate: {
+  Bd_reg_Date: {
     type: Date,
-    default: Date.now,
+    default: Date.now
   },
+  City_Id: {
+    type: Number,
+    required: [true, 'Please provide city'],
+    ref: 'City'
+  }
 }, {
-  timestamps: true,
+  timestamps: true
 });
 
 // Index for faster queries
-donorSchema.index({ bloodGroup: 1 });
-donorSchema.index({ city: 1 });
+donorSchema.index({ Bd_Bgroup: 1 });
+donorSchema.index({ City_Id: 1 });
 
-module.exports = mongoose.model('Donor', donorSchema);
+module.exports = mongoose.model('Blood_Donor', donorSchema);

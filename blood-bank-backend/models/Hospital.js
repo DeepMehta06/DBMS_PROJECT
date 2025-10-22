@@ -1,45 +1,40 @@
 const mongoose = require('mongoose');
 
 const hospitalSchema = new mongoose.Schema({
-  name: {
+  Hosp_Id: {
+    type: Number,
+    required: true,
+    unique: true
+  },
+  Hosp_Name: {
     type: String,
     required: [true, 'Please provide hospital name'],
     trim: true,
-    unique: true,
+    maxlength: [100, 'Hospital name cannot exceed 100 characters']
   },
-  city: {
-    type: String,
-    required: [true, 'Please provide city'],
-    trim: true,
-  },
-  phone: {
+  Hosp_Phone: {
     type: String,
     required: [true, 'Please provide phone number'],
     trim: true,
+    maxlength: [15, 'Phone number cannot exceed 15 characters']
   },
-  address: {
+  Hosp_Needed_Bgrp: {
     type: String,
-    trim: true,
+    required: [true, 'Please provide needed blood group'],
+    enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+    maxlength: 3
   },
-  email: {
-    type: String,
-    trim: true,
-    lowercase: true,
-  },
-  type: {
-    type: String,
-    enum: ['general', 'specialized', 'emergency'],
-    default: 'general',
-  },
-  capacity: {
+  City_Id: {
     type: Number,
-    min: [0, 'Capacity cannot be negative'],
-  },
+    required: [true, 'Please provide city'],
+    ref: 'City'
+  }
 }, {
-  timestamps: true,
+  timestamps: true
 });
 
 // Index for faster queries
-hospitalSchema.index({ city: 1 });
+hospitalSchema.index({ City_Id: 1 });
+hospitalSchema.index({ Hosp_Needed_Bgrp: 1 });
 
-module.exports = mongoose.model('Hospital', hospitalSchema);
+module.exports = mongoose.model('Hospital_Info', hospitalSchema);
