@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
-const Header = ({ title }) => {
+const Header = ({ title, toggleSidebar }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
@@ -34,11 +34,22 @@ const Header = ({ title }) => {
   };
 
   return (
-    <div className="bg-white shadow-md px-6 py-4 flex items-center justify-between border-b border-gray-200">
-      <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
+    <div className="bg-white shadow-md px-4 sm:px-6 py-4 flex items-center justify-between border-b border-gray-200">
+      <div className="flex items-center gap-3">
+        {/* Hamburger Menu Button for Mobile */}
+        <button
+          onClick={toggleSidebar}
+          className="lg:hidden text-gray-700 hover:text-red-600 focus:outline-none p-2"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">{title}</h2>
+      </div>
       
-      <div className="flex items-center gap-4">
-        <div className="text-right">
+      <div className="flex items-center gap-2 sm:gap-4">
+        <div className="text-right hidden sm:block">
           <div className="flex items-center gap-2 justify-end">
             <p className="text-sm font-medium text-gray-700">{user?.name || 'User'}</p>
             {user?.role && getRoleBadge(user.role)}
