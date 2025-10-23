@@ -33,6 +33,11 @@ app.use('/api/donors', require('./routes/donor.routes'));
 app.use('/api/recipients', require('./routes/recipient.routes'));
 app.use('/api/blood-specimens', require('./routes/bloodSpecimen.routes'));
 app.use('/api/hospitals', require('./routes/hospital.routes'));
+// New routes for managers, recording staff, relationships and cities
+app.use('/api/cities', require('./routes/city.routes'));
+app.use('/api/managers', require('./routes/bbManager.routes'));
+app.use('/api/recording-staff', require('./routes/recordingStaff.routes'));
+app.use('/api/relationships', require('./routes/relationship.routes'));
 
 // Root route
 app.get('/', (req, res) => {
@@ -71,7 +76,7 @@ app.use((err, req, res, next) => {
 // Start server
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 });
 
@@ -79,5 +84,9 @@ app.listen(PORT, () => {
 process.on('unhandledRejection', (err) => {
   console.log(`❌ Error: ${err.message}`);
   // Close server & exit process
-  server.close(() => process.exit(1));
+  if (server && typeof server.close === 'function') {
+    server.close(() => process.exit(1));
+  } else {
+    process.exit(1);
+  }
 });

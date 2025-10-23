@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { recipientsAPI } from '../services/api';
+import { recipientsAPI, citiesAPI } from '../services/api';
 import DataTable from '../components/shared/DataTable';
 import StatusBadge from '../components/ui/StatusBadge';
 
 const RecipientsPage = () => {
   const { user } = useAuth();
   const [recipients, setRecipients] = useState([]);
+  const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,14 +15,27 @@ const RecipientsPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingRecipient, setEditingRecipient] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    bloodGroup: '',
-    bloodQuantity: 1,
-    age: '',
-    sex: 'Male',
+    Reci_Name: '',
+    Reci_Phone: '',
+    Reci_Bgrp: '',
+    Reci_Bqty: 1,
+    Reci_Age: '',
+    Reci_Sex: 'M',
+    City_Id: '',
     status: 'pending'
   });
+
+  // Fetch cities from API
+  const fetchCities = useCallback(async () => {
+    try {
+      const response = await citiesAPI.getAll();
+      if (response.data.success) {
+        setCities(response.data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching cities:', err);
+    }
+  }, []);
 
   // Fetch recipients from API
   const fetchRecipients = useCallback(async () => {
@@ -46,8 +60,9 @@ const RecipientsPage = () => {
   }, [statusFilter]);
 
   useEffect(() => {
+    fetchCities();
     fetchRecipients();
-  }, [fetchRecipients]);
+  }, [fetchCities, fetchRecipients]);
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this recipient?')) {
@@ -65,12 +80,13 @@ const RecipientsPage = () => {
   const handleAddClick = () => {
     setEditingRecipient(null);
     setFormData({
-      name: '',
-      phone: '',
-      bloodGroup: '',
-      bloodQuantity: 1,
-      age: '',
-      sex: 'Male',
+      Reci_Name: '',
+      Reci_Phone: '',
+      Reci_Bgrp: '',
+      Reci_Bqty: 1,
+      Reci_Age: '',
+      Reci_Sex: 'M',
+      City_Id: '',
       status: 'pending'
     });
     setShowModal(true);
@@ -79,13 +95,14 @@ const RecipientsPage = () => {
   const handleEditClick = (recipient) => {
     setEditingRecipient(recipient);
     setFormData({
-      name: recipient.name,
-      phone: recipient.phone,
-      bloodGroup: recipient.bloodGroup,
-      bloodQuantity: recipient.bloodQuantity || 1,
-      age: recipient.age || '',
-      sex: recipient.sex || 'Male',
-      status: recipient.status
+      Reci_Name: recipient.Reci_Name || recipient.name || '',
+      Reci_Phone: recipient.Reci_Phone || recipient.phone || '',
+      Reci_Bgrp: recipient.Reci_Bgrp || recipient.bloodGroup || '',
+      Reci_Bqty: recipient.Reci_Bqty || recipient.bloodQuantity || 1,
+      Reci_Age: recipient.Reci_Age || recipient.age || '',
+      Reci_Sex: recipient.Reci_Sex || (recipient.sex === 'Male' ? 'M' : recipient.sex === 'Female' ? 'F' : '') || 'M',
+      City_Id: recipient.City_Id || '',
+      status: recipient.status || 'pending'
     });
     setShowModal(true);
   };
@@ -124,22 +141,35 @@ const RecipientsPage = () => {
   };
 
   const columns = [
-    { header: 'ID', accessor: 'id', render: (row) => row._id?.slice(-6) || 'N/A' },
-    { header: 'Name', accessor: 'name' },
-    { header: 'Blood Group', accessor: 'bloodGroup' },
-    { header: 'Phone', accessor: 'phone' },
+    { header: 'ID', accessor: 'Reci_Id', render: (row) => row.Reci_Id || row._id?.slice(-6) || 'N/A' },
+    { header: 'Name', accessor: 'Reci_Name', render: (row) => row.Reci_Name || row.name || 'N/A' },
+    { header: 'Blood Group', accessor: 'Reci_Bgrp', render: (row) => row.Reci_Bgrp || row.bloodGroup || 'N/A' },
+    { header: 'Phone', accessor: 'Reci_Phone', render: (row) => row.Reci_Phone || row.phone || 'N/A' },
     { 
       header: 'Quantity (Units)', 
-      accessor: 'bloodQuantity',
-      render: (row) => row.bloodQuantity || 1
+      accessor: 'Reci_Bqty',
+      render: (row) => row.Reci_Bqty || row.bloodQuantity || 1
     },
     {
       header: 'Age',
-      accessor: 'age'
+      accessor: 'Reci_Age',
+      render: (row) => row.Reci_Age || row.age || 'N/A'
     },
     {
       header: 'Sex',
-      accessor: 'sex'
+      accessor: 'Reci_Sex',
+      render: (row) => row.Reci_Sex || row.sex || 'N/A'
+    },
+    { 
+      header: 'City', 
+      accessor: 'City_Id',
+      render: (row) => {
+        if (row.City_Id) {
+          const city = cities.find(c => c.City_Id === row.City_Id);
+          return city?.City_Name || `City ID: ${row.City_Id}`;
+        }
+        return 'N/A';
+      }
     },
     {
       header: 'Status',
@@ -184,10 +214,14 @@ const RecipientsPage = () => {
   // Filter recipients based on search term
   const filteredRecipients = recipients.filter(recipient => {
     const searchLower = searchTerm.toLowerCase();
+    const recipientName = (recipient.Reci_Name || recipient.name || '').toLowerCase();
+    const recipientBloodGroup = (recipient.Reci_Bgrp || recipient.bloodGroup || '').toLowerCase();
+    const recipientPhone = (recipient.Reci_Phone || recipient.phone || '').toLowerCase();
+    
     return (
-      recipient.name?.toLowerCase().includes(searchLower) ||
-      recipient.bloodGroup?.toLowerCase().includes(searchLower) ||
-      recipient.phone?.toLowerCase().includes(searchLower)
+      recipientName.includes(searchLower) ||
+      recipientBloodGroup.includes(searchLower) ||
+      recipientPhone.includes(searchLower)
     );
   });
 
@@ -282,8 +316,8 @@ const RecipientsPage = () => {
                   </label>
                   <input
                     type="text"
-                    name="name"
-                    value={formData.name}
+                    name="Reci_Name"
+                    value={formData.Reci_Name}
                     onChange={handleFormChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -296,8 +330,8 @@ const RecipientsPage = () => {
                   </label>
                   <input
                     type="tel"
-                    name="phone"
-                    value={formData.phone}
+                    name="Reci_Phone"
+                    value={formData.Reci_Phone}
                     onChange={handleFormChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -309,8 +343,8 @@ const RecipientsPage = () => {
                     Blood Group *
                   </label>
                   <select
-                    name="bloodGroup"
-                    value={formData.bloodGroup}
+                    name="Reci_Bgrp"
+                    value={formData.Reci_Bgrp}
                     onChange={handleFormChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -333,8 +367,8 @@ const RecipientsPage = () => {
                   </label>
                   <input
                     type="number"
-                    name="bloodQuantity"
-                    value={formData.bloodQuantity}
+                    name="Reci_Bqty"
+                    value={formData.Reci_Bqty}
                     onChange={handleFormChange}
                     required
                     min="1"
@@ -349,8 +383,8 @@ const RecipientsPage = () => {
                   </label>
                   <input
                     type="number"
-                    name="age"
-                    value={formData.age}
+                    name="Reci_Age"
+                    value={formData.Reci_Age}
                     onChange={handleFormChange}
                     required
                     min="0"
@@ -364,15 +398,36 @@ const RecipientsPage = () => {
                     Sex *
                   </label>
                   <select
-                    name="sex"
-                    value={formData.sex}
+                    name="Reci_Sex"
+                    value={formData.Reci_Sex}
                     onChange={handleFormChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   >
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
+                    <option value="">Select Sex</option>
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
                     <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    City *
+                  </label>
+                  <select
+                    name="City_Id"
+                    value={formData.City_Id}
+                    onChange={handleFormChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    <option value="">Select City</option>
+                    {cities.map(city => (
+                      <option key={city._id} value={city.City_Id}>
+                        {city.City_Name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

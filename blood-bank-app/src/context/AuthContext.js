@@ -51,6 +51,8 @@ export const AuthProvider = ({ children }) => {
         setIsLoggedIn(true);
         
         return { success: true, data: response.data };
+      } else {
+        return { success: false, error: response.data.message || 'Login failed' };
       }
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Login failed. Please try again.';

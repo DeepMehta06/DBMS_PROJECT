@@ -24,22 +24,15 @@ const DashboardPage = () => {
       // Fetch donor stats
       const donorStatsResponse = await donorsAPI.getStats();
       
-      console.log('Inventory Response:', inventoryResponse.data);
-      console.log('Donor Response:', donorStatsResponse.data);
-      
       if (inventoryResponse.data.success && donorStatsResponse.data.success) {
         const inventoryData = inventoryResponse.data.data;
         const donorData = donorStatsResponse.data.data;
-        
-        console.log('Inventory Data:', inventoryData);
-        console.log('byBloodGroup:', inventoryData.byBloodGroup);
         
         // Ensure byBloodGroup is an object, not an array
         let byBloodGroup = inventoryData.byBloodGroup || {};
         
         // If byBloodGroup is an array, convert it to object
         if (Array.isArray(byBloodGroup)) {
-          console.log('Converting array to object...');
           const converted = {};
           byBloodGroup.forEach(item => {
             if (item._id) {
@@ -48,8 +41,6 @@ const DashboardPage = () => {
           });
           byBloodGroup = converted;
         }
-        
-        console.log('Final byBloodGroup:', byBloodGroup);
         
         // Combine stats
         setStats({
@@ -64,7 +55,6 @@ const DashboardPage = () => {
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch dashboard data');
-      console.error('Error fetching dashboard:', err);
     } finally {
       setLoading(false);
     }

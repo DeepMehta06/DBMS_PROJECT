@@ -13,11 +13,11 @@ const InventoryPage = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
-    specimenNumber: '',
-    bloodGroup: '',
+    Specimen_Id: '',
+    B_Group: '',
     collectionDate: '',
     expiryDate: '',
-    status: 'available'
+    Status: 'available'
   });
 
   const fetchInventory = useCallback(async () => {
@@ -60,7 +60,7 @@ const InventoryPage = () => {
 
   const handleStatusChange = async (id, newStatus) => {
     try {
-      await bloodSpecimensAPI.update(id, { status: newStatus });
+      await bloodSpecimensAPI.update(id, { Status: newStatus });
       fetchInventory();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to update status');
@@ -70,14 +70,14 @@ const InventoryPage = () => {
   const handleAddClick = () => {
     // Generate auto specimen number
     const timestamp = Date.now();
-    const specimenNumber = `SP-${new Date().getFullYear()}-${String(timestamp).slice(-6)}`;
+    const specimenId = parseInt(String(timestamp).slice(-6));
     
     setFormData({
-      specimenNumber,
-      bloodGroup: '',
+      Specimen_Id: specimenId,
+      B_Group: '',
       collectionDate: new Date().toISOString().split('T')[0],
       expiryDate: '',
-      status: 'available'
+      Status: 'available'
     });
     setShowModal(true);
   };
@@ -103,31 +103,35 @@ const InventoryPage = () => {
 
   const columns = [
     { 
-      header: 'ID', 
-      accessor: 'id',
-      render: (row) => row._id?.slice(-6) || 'N/A'
+      header: 'Specimen ID', 
+      accessor: 'Specimen_Id',
+      render: (row) => row.Specimen_Id || row._id?.slice(-6) || 'N/A'
     },
-    { header: 'Blood Group', accessor: 'bloodGroup' },
+    { 
+      header: 'Blood Group', 
+      accessor: 'B_Group',
+      render: (row) => row.B_Group || row.bloodGroup || 'N/A'
+    },
     {
       header: 'Status',
-      accessor: 'status',
-      render: (row) => <StatusBadge status={row.status} />
+      accessor: 'Status',
+      render: (row) => <StatusBadge status={row.Status || row.status} />
     },
     { 
       header: 'Collection Date', 
       accessor: 'collectionDate',
-      render: (row) => new Date(row.collectionDate).toLocaleDateString()
+      render: (row) => row.collectionDate ? new Date(row.collectionDate).toLocaleDateString() : 'N/A'
     },
     { 
       header: 'Expiry Date', 
       accessor: 'expiryDate',
-      render: (row) => new Date(row.expiryDate).toLocaleDateString()
+      render: (row) => row.expiryDate ? new Date(row.expiryDate).toLocaleDateString() : 'N/A'
     },
     {
       header: 'Actions',
       render: (row) => (
         <div className="flex gap-2">
-          {row.status === 'available' && (
+          {(row.Status === 'available' || row.status === 'available') && (
             <select
               onChange={(e) => handleStatusChange(row._id, e.target.value)}
               className="text-xs border border-gray-300 rounded px-2 py-1"
@@ -156,8 +160,8 @@ const InventoryPage = () => {
   const filteredInventory = inventory.filter(item => {
     const searchLower = searchTerm.toLowerCase();
     return (
-      item.bloodGroup?.toLowerCase().includes(searchLower) ||
-      item._id?.toLowerCase().includes(searchLower)
+      (item.B_Group || item.bloodGroup)?.toLowerCase().includes(searchLower) ||
+      (item.Specimen_Id || item._id)?.toString().toLowerCase().includes(searchLower)
     );
   });
 
@@ -245,12 +249,12 @@ const InventoryPage = () => {
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Specimen Number *
+                  Specimen ID *
                 </label>
                 <input
-                  type="text"
-                  name="specimenNumber"
-                  value={formData.specimenNumber}
+                  type="number"
+                  name="Specimen_Id"
+                  value={formData.Specimen_Id}
                   readOnly
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
                 />
@@ -261,8 +265,8 @@ const InventoryPage = () => {
                   Blood Group *
                 </label>
                 <select
-                  name="bloodGroup"
-                  value={formData.bloodGroup}
+                  name="B_Group"
+                  value={formData.B_Group}
                   onChange={handleFormChange}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -305,6 +309,24 @@ const InventoryPage = () => {
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status *
+                </label>
+                <select
+                  name="Status"
+                  value={formData.Status}
+                  onChange={handleFormChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                  <option value="available">Available</option>
+                  <option value="reserved">Reserved</option>
+                  <option value="used">Used</option>
+                  <option value="contaminated">Contaminated</option>
+                </select>
               </div>
 
               <div className="flex gap-4 mt-6">

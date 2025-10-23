@@ -85,4 +85,12 @@ export const hospitalsAPI = {
   delete: (id) => API.delete(`/hospitals/${id}`),
 };
 
+// Cities API calls
+export const citiesAPI = {
+  getAll: () => API.get('/cities'),
+  getById: (id) => API.get(`/cities/${id}`),
+  create: (data) => API.post('/cities', data),
+  delete: (id) => API.delete(`/cities/${id}`),
+};
+
 export default API;

@@ -1,25 +1,35 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { hospitalsAPI } from '../services/api';
+import { hospitalsAPI, citiesAPI } from '../services/api';
 import DataTable from '../components/shared/DataTable';
 
 const HospitalsPage = () => {
   const { user } = useAuth();
   const [hospitals, setHospitals] = useState([]);
+  const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingHospital, setEditingHospital] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
-    address: '',
-    city: '',
-    phone: '',
-    email: '',
-    type: 'general',
-    capacity: ''
+    Hosp_Name: '',
+    Hosp_Phone: '',
+    Hosp_Needed_Bgrp: '',
+    City_Id: ''
   });
+
+  // Fetch cities from API
+  const fetchCities = useCallback(async () => {
+    try {
+      const response = await citiesAPI.getAll();
+      if (response.data.success) {
+        setCities(response.data.data || []);
+      }
+    } catch (err) {
+      console.error('Error fetching cities:', err);
+    }
+  }, []);
 
   // Fetch hospitals from API
   const fetchHospitals = useCallback(async () => {
@@ -41,8 +51,9 @@ const HospitalsPage = () => {
   }, []);
 
   useEffect(() => {
+    fetchCities();
     fetchHospitals();
-  }, [fetchHospitals]);
+  }, [fetchCities, fetchHospitals]);
 
   const handleDelete = async (id) => {
     if (user?.role !== 'manager') {
@@ -70,15 +81,26 @@ const HospitalsPage = () => {
 
     setEditingHospital(null);
     setFormData({
-      name: '',
-      address: '',
-      city: '',
-      phone: '',
-      email: '',
-      type: 'general',
-      capacity: ''
+      Hosp_Name: '',
+      Hosp_Phone: '',
+      Hosp_Needed_Bgrp: '',
+      City_Id: ''
     });
     setShowModal(true);
+  };
+
+  // Helper function to get City_Id by city name (for backward compatibility)
+  const getCityIdByName = (cityName) => {
+    if (!cityName) return '';
+    const city = cities.find(c => c.City_Name?.toLowerCase() === cityName?.toLowerCase());
+    return city ? city.City_Id : '';
+  };
+
+  // Helper function to get City_Name by City_Id
+  const getCityName = (cityId) => {
+    if (!cityId) return 'N/A';
+    const city = cities.find(c => c.City_Id === cityId);
+    return city ? city.City_Name : 'N/A';
   };
 
   const handleEditClick = (hospital) => {
@@ -89,13 +111,10 @@ const HospitalsPage = () => {
 
     setEditingHospital(hospital);
     setFormData({
-      name: hospital.name,
-      address: hospital.address,
-      city: hospital.city,
-      phone: hospital.phone,
-      email: hospital.email,
-      type: hospital.type || 'general',
-      capacity: hospital.capacity || ''
+      Hosp_Name: hospital.Hosp_Name || hospital.name || '',
+      Hosp_Phone: hospital.Hosp_Phone || hospital.phone || '',
+      Hosp_Needed_Bgrp: hospital.Hosp_Needed_Bgrp || hospital.neededBloodGroup || '',
+      City_Id: hospital.City_Id || getCityIdByName(hospital.city) || ''
     });
     setShowModal(true);
   };
@@ -125,28 +144,30 @@ const HospitalsPage = () => {
   };
 
   const columns = [
-    { header: 'ID', accessor: 'id', render: (row) => row._id?.slice(-6) || 'N/A' },
-    { header: 'Hospital Name', accessor: 'name' },
-    { header: 'City', accessor: 'city' },
-    { header: 'Phone', accessor: 'phone' },
-    { header: 'Email', accessor: 'email' },
-    {
-      header: 'Type',
-      accessor: 'type',
-      render: (row) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-          row.type === 'specialized' ? 'bg-purple-100 text-purple-800' :
-          row.type === 'emergency' ? 'bg-red-100 text-red-800' :
-          'bg-blue-100 text-blue-800'
-        }`}>
-          {row.type?.toUpperCase() || 'GENERAL'}
-        </span>
-      )
+    { 
+      header: 'ID', 
+      accessor: 'Hosp_Id', 
+      render: (row) => row.Hosp_Id || row._id?.slice(-6) || 'N/A' 
     },
-    {
-      header: 'Capacity',
-      accessor: 'capacity',
-      render: (row) => row.capacity || 'N/A'
+    { 
+      header: 'Hospital Name', 
+      accessor: 'Hosp_Name',
+      render: (row) => row.Hosp_Name || row.name || 'N/A'
+    },
+    { 
+      header: 'Phone', 
+      accessor: 'Hosp_Phone',
+      render: (row) => row.Hosp_Phone || row.phone || 'N/A'
+    },
+    { 
+      header: 'Needed Blood Group', 
+      accessor: 'Hosp_Needed_Bgrp',
+      render: (row) => row.Hosp_Needed_Bgrp || row.neededBloodGroup || 'N/A'
+    },
+    { 
+      header: 'City', 
+      accessor: 'City_Id',
+      render: (row) => getCityName(row.City_Id) || row.city || 'N/A'
     },
     {
       header: 'Actions',
@@ -180,9 +201,11 @@ const HospitalsPage = () => {
   const filteredHospitals = hospitals.filter(hospital => {
     const searchLower = searchTerm.toLowerCase();
     return (
-      hospital.name?.toLowerCase().includes(searchLower) ||
-      hospital.city?.toLowerCase().includes(searchLower) ||
-      hospital.type?.toLowerCase().includes(searchLower)
+      (hospital.Hosp_Name || hospital.name)?.toLowerCase().includes(searchLower) ||
+      (hospital.Hosp_Phone || hospital.phone)?.toLowerCase().includes(searchLower) ||
+      (hospital.Hosp_Needed_Bgrp || hospital.neededBloodGroup)?.toLowerCase().includes(searchLower) ||
+      getCityName(hospital.City_Id)?.toLowerCase().includes(searchLower) ||
+      hospital.city?.toLowerCase().includes(searchLower)
     );
   });
 
@@ -270,36 +293,8 @@ const HospitalsPage = () => {
                   </label>
                   <input
                     type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleFormChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
-                </div>
-
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Address *
-                  </label>
-                  <input
-                    type="text"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleFormChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    City *
-                  </label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={formData.city}
+                    name="Hosp_Name"
+                    value={formData.Hosp_Name}
                     onChange={handleFormChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -312,8 +307,8 @@ const HospitalsPage = () => {
                   </label>
                   <input
                     type="tel"
-                    name="phone"
-                    value={formData.phone}
+                    name="Hosp_Phone"
+                    value={formData.Hosp_Phone}
                     onChange={handleFormChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -322,47 +317,45 @@ const HospitalsPage = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleFormChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Hospital Type *
+                    Needed Blood Group *
                   </label>
                   <select
-                    name="type"
-                    value={formData.type}
+                    name="Hosp_Needed_Bgrp"
+                    value={formData.Hosp_Needed_Bgrp}
                     onChange={handleFormChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   >
-                    <option value="general">General</option>
-                    <option value="specialized">Specialized</option>
-                    <option value="emergency">Emergency</option>
+                    <option value="">Select Blood Group</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
                   </select>
                 </div>
 
-                <div>
+                <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Bed Capacity
+                    City *
                   </label>
-                  <input
-                    type="number"
-                    name="capacity"
-                    value={formData.capacity}
+                  <select
+                    name="City_Id"
+                    value={formData.City_Id}
                     onChange={handleFormChange}
-                    min="1"
+                    required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
+                  >
+                    <option value="">Select City</option>
+                    {cities.map(city => (
+                      <option key={city._id} value={city.City_Id}>
+                        {city.City_Name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

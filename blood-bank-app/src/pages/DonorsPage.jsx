@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { donorsAPI } from '../services/api';
+import { donorsAPI, citiesAPI } from '../services/api';
 import DataTable from '../components/shared/DataTable';
 
 const DonorsPage = () => {
   const { user } = useAuth();
   const [donors, setDonors] = useState([]);
+  const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,15 +14,25 @@ const DonorsPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingDonor, setEditingDonor] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    bloodGroup: '',
-    city: '',
-    address: '',
-    age: '',
-    sex: ''
+    Bd_Name: '',
+    Bd_Phone: '',
+    Bd_Bgroup: '',
+    City_Id: '',
+    Bd_Age: '',
+    Bd_Sex: ''
   });
+
+  // Fetch cities from API
+  const fetchCities = useCallback(async () => {
+    try {
+      const response = await citiesAPI.getAll();
+      if (response.data.success) {
+        setCities(response.data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching cities:', err);
+    }
+  }, []);
 
   // Fetch donors from API
   const fetchDonors = useCallback(async () => {
@@ -46,8 +57,9 @@ const DonorsPage = () => {
   }, [bloodGroupFilter]);
 
   useEffect(() => {
+    fetchCities();
     fetchDonors();
-  }, [fetchDonors]);
+  }, [fetchCities, fetchDonors]);
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this donor?')) {
@@ -66,14 +78,12 @@ const DonorsPage = () => {
   const handleAddClick = () => {
     setEditingDonor(null);
     setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      bloodGroup: '',
-      city: '',
-      address: '',
-      age: '',
-      sex: ''
+      Bd_Name: '',
+      Bd_Phone: '',
+      Bd_Bgroup: '',
+      City_Id: '',
+      Bd_Age: '',
+      Bd_Sex: ''
     });
     setShowModal(true);
   };
@@ -81,14 +91,12 @@ const DonorsPage = () => {
   const handleEditClick = (donor) => {
     setEditingDonor(donor);
     setFormData({
-      name: donor.name,
-      email: donor.email,
-      phone: donor.phone,
-      bloodGroup: donor.bloodGroup,
-      city: donor.city,
-      address: donor.address || '',
-      age: donor.age,
-      sex: donor.sex
+      Bd_Name: donor.Bd_Name || donor.name || '',
+      Bd_Phone: donor.Bd_Phone || donor.phone || '',
+      Bd_Bgroup: donor.Bd_Bgroup || donor.bloodGroup || '',
+      City_Id: donor.City_Id || '',
+      Bd_Age: donor.Bd_Age || donor.age || '',
+      Bd_Sex: donor.Bd_Sex || (donor.sex === 'Male' ? 'M' : donor.sex === 'Female' ? 'F' : '') || ''
     });
     setShowModal(true);
   };
@@ -118,15 +126,27 @@ const DonorsPage = () => {
   };
 
   const columns = [
-    { header: 'ID', accessor: 'id', render: (row) => row._id?.slice(-6) || 'N/A' },
-    { header: 'Name', accessor: 'name' },
-    { header: 'Blood Group', accessor: 'bloodGroup' },
-    { header: 'Phone', accessor: 'phone' },
-    { header: 'City', accessor: 'city' },
+    { header: 'ID', accessor: 'Bd_Id', render: (row) => row.Bd_Id || row._id?.slice(-6) || 'N/A' },
+    { header: 'Name', accessor: 'Bd_Name', render: (row) => row.Bd_Name || row.name || 'N/A' },
+    { header: 'Blood Group', accessor: 'Bd_Bgroup', render: (row) => row.Bd_Bgroup || row.bloodGroup || 'N/A' },
+    { header: 'Phone', accessor: 'Bd_Phone', render: (row) => row.Bd_Phone || row.phone || 'N/A' },
+    { header: 'Age', accessor: 'Bd_Age', render: (row) => row.Bd_Age || row.age || 'N/A' },
+    { header: 'Sex', accessor: 'Bd_Sex', render: (row) => row.Bd_Sex || row.sex || 'N/A' },
+    { 
+      header: 'City', 
+      accessor: 'City_Id',
+      render: (row) => {
+        if (row.City_Id) {
+          const city = cities.find(c => c.City_Id === row.City_Id);
+          return city?.City_Name || `City ID: ${row.City_Id}`;
+        }
+        return row.city || 'N/A';
+      }
+    },
     { 
       header: 'Registration Date', 
-      accessor: 'registrationDate',
-      render: (row) => new Date(row.registrationDate).toLocaleDateString()
+      accessor: 'Bd_reg_Date',
+      render: (row) => new Date(row.Bd_reg_Date || row.registrationDate || row.createdAt).toLocaleDateString()
     },
     {
       header: 'Actions',
@@ -157,10 +177,16 @@ const DonorsPage = () => {
   // Filter donors based on search term
   const filteredDonors = donors.filter(donor => {
     const searchLower = searchTerm.toLowerCase();
+    const donorName = (donor.Bd_Name || donor.name || '').toLowerCase();
+    const donorBloodGroup = (donor.Bd_Bgroup || donor.bloodGroup || '').toLowerCase();
+    const donorCity = donor.City_Id 
+      ? (cities.find(c => c.City_Id === donor.City_Id)?.City_Name || '').toLowerCase()
+      : (donor.city || '').toLowerCase();
+    
     return (
-      donor.name?.toLowerCase().includes(searchLower) ||
-      donor.bloodGroup?.toLowerCase().includes(searchLower) ||
-      donor.city?.toLowerCase().includes(searchLower)
+      donorName.includes(searchLower) ||
+      donorBloodGroup.includes(searchLower) ||
+      donorCity.includes(searchLower)
     );
   });
 
@@ -259,24 +285,11 @@ const DonorsPage = () => {
                   </label>
                   <input
                     type="text"
-                    name="name"
-                    value={formData.name}
+                    name="Bd_Name"
+                    value={formData.Bd_Name}
                     onChange={handleFormChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleFormChange}
-                    required
+                    maxLength="100"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 </div>
@@ -287,10 +300,11 @@ const DonorsPage = () => {
                   </label>
                   <input
                     type="tel"
-                    name="phone"
-                    value={formData.phone}
+                    name="Bd_Phone"
+                    value={formData.Bd_Phone}
                     onChange={handleFormChange}
                     required
+                    maxLength="15"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 </div>
@@ -300,8 +314,8 @@ const DonorsPage = () => {
                     Blood Group *
                   </label>
                   <select
-                    name="bloodGroup"
-                    value={formData.bloodGroup}
+                    name="Bd_Bgroup"
+                    value={formData.Bd_Bgroup}
                     onChange={handleFormChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -320,12 +334,32 @@ const DonorsPage = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    City *
+                  </label>
+                  <select
+                    name="City_Id"
+                    value={formData.City_Id}
+                    onChange={handleFormChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    <option value="">Select City</option>
+                    {cities.map((city) => (
+                      <option key={city._id} value={city.City_Id}>
+                        {city.City_Name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Age *
                   </label>
                   <input
                     type="number"
-                    name="age"
-                    value={formData.age}
+                    name="Bd_Age"
+                    value={formData.Bd_Age}
                     onChange={handleFormChange}
                     required
                     min="18"
@@ -339,44 +373,16 @@ const DonorsPage = () => {
                     Sex *
                   </label>
                   <select
-                    name="sex"
-                    value={formData.sex}
+                    name="Bd_Sex"
+                    value={formData.Bd_Sex}
                     onChange={handleFormChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   >
                     <option value="">Select Sex</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
                   </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    City *
-                  </label>
-                  <input
-                    type="text"
-                    name="city"
-                    value={formData.city}
-                    onChange={handleFormChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Address
-                  </label>
-                  <input
-                    type="text"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
                 </div>
               </div>
 

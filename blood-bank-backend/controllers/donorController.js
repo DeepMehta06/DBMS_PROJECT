@@ -167,10 +167,23 @@ exports.getDonorStats = async (req, res) => {
 
     const totalDonors = await Donor.countDocuments();
 
+    // Calculate donors this month (check both Bd_reg_Date and registrationDate for backward compatibility)
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const donorsThisMonth = await Donor.countDocuments({
+      $or: [
+        { Bd_reg_Date: { $gte: startOfMonth } },
+        { registrationDate: { $gte: startOfMonth } }
+      ]
+    });
+
     res.status(200).json({
       success: true,
       data: {
         totalDonors,
+        thisMonth: donorsThisMonth,
         byBloodGroup: stats,
       },
     });
