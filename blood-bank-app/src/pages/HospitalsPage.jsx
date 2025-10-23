@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { hospitalsAPI, citiesAPI } from '../services/api';
 import DataTable from '../components/shared/DataTable';
-import { Plus, Edit, Trash2, Loader2, Search, X, MapPin, Phone, Building2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Loader2, Search, X } from 'lucide-react';
 
 
 const HospitalsPage = () => {

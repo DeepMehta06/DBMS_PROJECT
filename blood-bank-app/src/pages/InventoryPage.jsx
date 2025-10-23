@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { bloodSpecimensAPI } from '../services/api';
 import DataTable from '../components/shared/DataTable';
 import StatusBadge from '../components/ui/StatusBadge';
-import { Plus, Loader2, Search, Filter, X, Droplets, Calendar, Edit, Trash2 } from 'lucide-react';
+import { Plus, Loader2, Search, Filter, X } from 'lucide-react';
 
 
 const InventoryPage = () => {

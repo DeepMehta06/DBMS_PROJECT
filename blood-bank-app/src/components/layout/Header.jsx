@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Menu, LogOut, User } from 'lucide-react';
+import { Menu, LogOut } from 'lucide-react';
 
 const Header = ({ title, toggleSidebar }) => {
   const { user, logout } = useAuth();
