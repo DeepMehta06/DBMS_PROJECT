@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { bloodSpecimensAPI } from '../services/api';
 import DataTable from '../components/shared/DataTable';
 import StatusBadge from '../components/ui/StatusBadge';
-import { Plus, Loader2, Search, Filter, X } from 'lucide-react';
+import { Plus, Loader2, Search, Filter, X, ChevronDown } from 'lucide-react';
 
 
 const InventoryPage = () => {
@@ -223,11 +223,12 @@ const InventoryPage = () => {
             />
           </div>
           <div className="relative w-full md:w-auto">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400 pointer-events-none" />
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400 pointer-events-none z-10" />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 pointer-events-none" />
             <select 
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full md:w-auto pl-10 pr-8 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none bg-white"
+              className="w-full md:w-auto pl-10 pr-9 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none bg-white cursor-pointer hover:border-zinc-400"
             >
               <option value="">All Status</option>
               <option value="available">Available</option>
