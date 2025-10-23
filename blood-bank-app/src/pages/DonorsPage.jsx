@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { donorsAPI, citiesAPI } from '../services/api';
 import DataTable from '../components/shared/DataTable';
+import { Plus, Edit, Trash2, Phone, Loader2, Search, Filter, X, MapPin } from 'lucide-react';
 
 const DonorsPage = () => {
   const { user } = useAuth();
@@ -154,19 +155,24 @@ const DonorsPage = () => {
         <div className="flex gap-2">
           <button 
             onClick={() => handleEditClick(row)}
-            className="text-blue-600 hover:text-blue-800 font-medium text-xs"
+            className="text-blue-600 hover:text-blue-800 p-1.5 rounded hover:bg-blue-50 transition-colors"
+            title="Edit donor"
           >
-            Edit
+            <Edit className="h-4 w-4" />
           </button>
-          <button className="text-green-600 hover:text-green-800 font-medium text-xs">
-            Contact
+          <button 
+            className="text-emerald-600 hover:text-emerald-800 p-1.5 rounded hover:bg-emerald-50 transition-colors"
+            title="Contact donor"
+          >
+            <Phone className="h-4 w-4" />
           </button>
           {user?.role === 'manager' && (
             <button 
               onClick={() => handleDelete(row._id)}
-              className="text-red-600 hover:text-red-800 font-medium text-xs"
+              className="text-red-600 hover:text-red-800 p-1.5 rounded hover:bg-red-50 transition-colors"
+              title="Delete donor"
             >
-              Delete
+              <Trash2 className="h-4 w-4" />
             </button>
           )}
         </div>
@@ -194,8 +200,8 @@ const DonorsPage = () => {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading donors...</p>
+          <Loader2 className="h-12 w-12 text-blue-600 mx-auto mb-4 animate-spin" />
+          <p className="text-zinc-600">Loading donors...</p>
         </div>
       </div>
     );
@@ -205,203 +211,225 @@ const DonorsPage = () => {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Registered Donors</h3>
-          <p className="text-gray-600">Manage donor information and contact details</p>
+          <h3 className="text-lg font-semibold text-zinc-900 mb-2">Registered Donors</h3>
+          <p className="text-zinc-600">Manage donor information and contact details</p>
         </div>
         <button 
           onClick={handleAddClick}
-          className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-colors duration-150 flex items-center gap-2"
         >
-          + Add New Donor
+          <Plus className="h-5 w-5" />
+          Add New Donor
         </button>
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
           <p>{error}</p>
           <button 
             onClick={fetchDonors}
-            className="mt-2 text-sm underline"
+            className="mt-2 text-sm underline hover:no-underline"
           >
             Try Again
           </button>
         </div>
       )}
 
-      <div className="mb-4 bg-white p-4 rounded-lg shadow-md">
+      <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-zinc-200">
         <div className="flex gap-4">
-          <input
-            type="text"
-            placeholder="Search by name, blood group, or city..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-          />
-          <select 
-            value={bloodGroupFilter}
-            onChange={(e) => setBloodGroupFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-          >
-            <option value="">All Blood Groups</option>
-            <option value="A+">A+</option>
-            <option value="A-">A-</option>
-            <option value="B+">B+</option>
-            <option value="B-">B-</option>
-            <option value="AB+">AB+</option>
-            <option value="AB-">AB-</option>
-            <option value="O+">O+</option>
-            <option value="O-">O-</option>
-          </select>
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
+            <input
+              type="text"
+              placeholder="Search by name, blood group, or city..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+            />
+          </div>
+          <div className="relative">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400 pointer-events-none" />
+            <select 
+              value={bloodGroupFilter}
+              onChange={(e) => setBloodGroupFilter(e.target.value)}
+              className="pl-10 pr-8 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none bg-white"
+            >
+              <option value="">All Blood Groups</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+          </div>
         </div>
       </div>
 
       <DataTable columns={columns} data={filteredDonors} />
       
-      <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+      <div className="mt-4 flex items-center justify-between text-sm text-zinc-600">
         <p>Showing {filteredDonors.length} of {donors.length} donors</p>
       </div>
 
       {/* Modal for Add/Edit Donor */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-xl border border-zinc-200">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-zinc-200 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-zinc-900">
                 {editingDonor ? 'Edit Donor' : 'Add New Donor'}
               </h2>
               <button 
                 onClick={() => setShowModal(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-zinc-400 hover:text-zinc-600 p-1 rounded-lg hover:bg-zinc-100 transition-colors"
               >
-                ×
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="Bd_Name"
-                    value={formData.Bd_Name}
-                    onChange={handleFormChange}
-                    required
-                    maxLength="100"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
-                </div>
+            {/* Modal Content */}
+            <div className="px-6 py-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+              <form onSubmit={handleFormSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="Bd_Name"
+                      value={formData.Bd_Name}
+                      onChange={handleFormChange}
+                      required
+                      maxLength="100"
+                      className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-colors"
+                      placeholder="Enter full name"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone *
-                  </label>
-                  <input
-                    type="tel"
-                    name="Bd_Phone"
-                    value={formData.Bd_Phone}
-                    onChange={handleFormChange}
-                    required
-                    maxLength="15"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+                      Phone *
+                    </label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                      <input
+                        type="tel"
+                        name="Bd_Phone"
+                        value={formData.Bd_Phone}
+                        onChange={handleFormChange}
+                        required
+                        maxLength="15"
+                        className="w-full pl-10 pr-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-colors"
+                        placeholder="Enter phone number"
+                      />
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Blood Group *
-                  </label>
-                  <select
-                    name="Bd_Bgroup"
-                    value={formData.Bd_Bgroup}
-                    onChange={handleFormChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  >
-                    <option value="">Select Blood Group</option>
-                    <option value="A+">A+</option>
-                    <option value="A-">A-</option>
-                    <option value="B+">B+</option>
-                    <option value="B-">B-</option>
-                    <option value="AB+">AB+</option>
-                    <option value="AB-">AB-</option>
-                    <option value="O+">O+</option>
-                    <option value="O-">O-</option>
-                  </select>
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+                      Blood Group *
+                    </label>
+                    <select
+                      name="Bd_Bgroup"
+                      value={formData.Bd_Bgroup}
+                      onChange={handleFormChange}
+                      required
+                      className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-colors"
+                    >
+                      <option value="">Select Blood Group</option>
+                      <option value="A+">A+</option>
+                      <option value="A-">A-</option>
+                      <option value="B+">B+</option>
+                      <option value="B-">B-</option>
+                      <option value="AB+">AB+</option>
+                      <option value="AB-">AB-</option>
+                      <option value="O+">O+</option>
+                      <option value="O-">O-</option>
+                    </select>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    City *
-                  </label>
-                  <select
-                    name="City_Id"
-                    value={formData.City_Id}
-                    onChange={handleFormChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  >
-                    <option value="">Select City</option>
-                    {cities.map((city) => (
-                      <option key={city._id} value={city.City_Id}>
-                        {city.City_Name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+                      City *
+                    </label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 pointer-events-none" />
+                      <select
+                        name="City_Id"
+                        value={formData.City_Id}
+                        onChange={handleFormChange}
+                        required
+                        className="w-full pl-10 pr-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-colors appearance-none bg-white"
+                      >
+                        <option value="">Select City</option>
+                        {cities.map((city) => (
+                          <option key={city._id} value={city.City_Id}>
+                            {city.City_Name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Age *
-                  </label>
-                  <input
-                    type="number"
-                    name="Bd_Age"
-                    value={formData.Bd_Age}
-                    onChange={handleFormChange}
-                    required
-                    min="18"
-                    max="65"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+                      Age *
+                    </label>
+                    <input
+                      type="number"
+                      name="Bd_Age"
+                      value={formData.Bd_Age}
+                      onChange={handleFormChange}
+                      required
+                      min="18"
+                      max="65"
+                      className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-colors"
+                      placeholder="18-65"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Sex *
-                  </label>
-                  <select
-                    name="Bd_Sex"
-                    value={formData.Bd_Sex}
-                    onChange={handleFormChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  >
-                    <option value="">Select Sex</option>
-                    <option value="M">Male</option>
-                    <option value="F">Female</option>
-                  </select>
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+                      Sex *
+                    </label>
+                    <select
+                      name="Bd_Sex"
+                      value={formData.Bd_Sex}
+                      onChange={handleFormChange}
+                      required
+                      className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-colors"
+                    >
+                      <option value="">Select Sex</option>
+                      <option value="M">Male</option>
+                      <option value="F">Female</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
+              </form>
+            </div>
 
-              <div className="flex gap-4 mt-6">
-                <button
-                  type="submit"
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-                >
-                  {editingDonor ? 'Update Donor' : 'Add Donor'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-200 flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-white text-zinc-700 font-medium rounded-lg shadow-sm ring-1 ring-inset ring-zinc-300 hover:bg-zinc-50 transition-colors duration-150"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                onClick={handleFormSubmit}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-150"
+              >
+                {editingDonor ? 'Update Donor' : 'Add Donor'}
+              </button>
+            </div>
           </div>
         </div>
       )}
