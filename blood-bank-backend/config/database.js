@@ -6,8 +6,10 @@ const connectDB = async () => {
 
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error(`❌ Error: ${error.message}`);
-    process.exit(1);
+    console.error(`❌ MongoDB Connection Error: ${error.message}`);
+    console.error('⚠️  Server will continue running but database features will not work.');
+    console.error('⚠️  Please check your MONGODB_URI environment variable.');
+    // Don't exit - let server start anyway
   }
 };
 

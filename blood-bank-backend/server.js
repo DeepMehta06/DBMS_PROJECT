@@ -45,6 +45,7 @@ app.get('/', (req, res) => {
     success: true,
     message: 'Blood Bank Management System API',
     version: '1.0.0',
+    status: 'running',
     endpoints: {
       auth: '/api/auth',
       donors: '/api/donors',
@@ -52,6 +53,16 @@ app.get('/', (req, res) => {
       bloodSpecimens: '/api/blood-specimens',
       hospitals: '/api/hospitals',
     },
+  });
+});
+
+// Health check endpoint for Render
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Server is healthy',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -75,9 +86,11 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
+const HOST = process.env.HOST || '0.0.0.0'; // Bind to 0.0.0.0 for Render
 
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+const server = app.listen(PORT, HOST, () => {
+  console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on ${HOST}:${PORT}`);
+  console.log(`📍 CORS enabled for: ${corsOptions.origin.join(', ')}`);
 });
 
 // Handle unhandled promise rejections
