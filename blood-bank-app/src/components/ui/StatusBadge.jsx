@@ -1,23 +1,52 @@
 import React from 'react';
+import { CheckCircle, Clock, XCircle, AlertTriangle } from 'lucide-react';
 
 const StatusBadge = ({ status }) => {
-  const getStatusColor = () => {
+  const getStatusConfig = () => {
     switch (status.toLowerCase()) {
       case 'available':
-        return 'bg-green-100 text-green-800 border-green-300';
+      case 'approved':
+        return {
+          bg: 'bg-emerald-100',
+          text: 'text-emerald-700',
+          icon: CheckCircle
+        };
       case 'reserved':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'pending':
+        return {
+          bg: 'bg-amber-100',
+          text: 'text-amber-700',
+          icon: Clock
+        };
       case 'used':
-        return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'fulfilled':
+        return {
+          bg: 'bg-blue-100',
+          text: 'text-blue-700',
+          icon: CheckCircle
+        };
       case 'contaminated':
-        return 'bg-red-100 text-red-800 border-red-300';
+      case 'rejected':
+        return {
+          bg: 'bg-red-100',
+          text: 'text-red-700',
+          icon: XCircle
+        };
       default:
-        return 'bg-blue-100 text-blue-800 border-blue-300';
+        return {
+          bg: 'bg-zinc-100',
+          text: 'text-zinc-700',
+          icon: AlertTriangle
+        };
     }
   };
 
+  const config = getStatusConfig();
+  const Icon = config.icon;
+
   return (
-    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor()}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
+      <Icon className="h-3 w-3" />
       {status}
     </span>
   );
