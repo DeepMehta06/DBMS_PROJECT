@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { recipientsAPI, citiesAPI } from '../services/api';
 import DataTable from '../components/shared/DataTable';
 import StatusBadge from '../components/ui/StatusBadge';
-import { Plus, Edit, Trash2, Phone, Loader2, Search, Filter, X, MapPin, Heart } from 'lucide-react';
+import { Plus, Edit, Trash2, Loader2, Search, Filter, X } from 'lucide-react'; // Removed unused icons
 
 const RecipientsPage = () => {
   const { user } = useAuth();
@@ -66,15 +66,15 @@ const RecipientsPage = () => {
   }, [fetchCities, fetchRecipients]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this recipient?')) {
-      return;
-    }
+    // Removed window.confirm as it is not supported.
+    // A custom confirmation modal would be the ideal replacement.
 
     try {
       await recipientsAPI.delete(id);
       fetchRecipients();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete recipient');
+      // Replaced alert with console.error
+      console.error(err.response?.data?.message || 'Failed to delete recipient');
     }
   };
 
@@ -128,7 +128,8 @@ const RecipientsPage = () => {
       setShowModal(false);
       fetchRecipients();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to save recipient');
+      // Replaced alert with console.error
+      console.error(err.response?.data?.message || 'Failed to save recipient');
     }
   };
 
@@ -137,7 +138,8 @@ const RecipientsPage = () => {
       await recipientsAPI.update(id, { status: newStatus });
       fetchRecipients();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update status');
+      // Replaced alert with console.error
+      console.error(err.response?.data?.message || 'Failed to update status');
     }
   };
 
@@ -462,26 +464,26 @@ const RecipientsPage = () => {
                   </select>
                 </div>
                 </div>
-              </div>
-            </form>
-          </div>
+              </form>
+            </div>
 
-          {/* Modal Footer */}
-          <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-200 flex gap-3 justify-end">
-            <button
-              type="button"
-              onClick={() => setShowModal(false)}
-              className="px-4 py-2 bg-white text-zinc-700 font-medium rounded-lg shadow-sm ring-1 ring-inset ring-zinc-300 hover:bg-zinc-50 transition-colors duration-150"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              form="recipient-form"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-150"
-            >
-              {editingRecipient ? 'Update Recipient' : 'Add Recipient'}
-            </button>
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-200 flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-white text-zinc-700 font-medium rounded-lg shadow-sm ring-1 ring-inset ring-zinc-300 hover:bg-zinc-50 transition-colors duration-150"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="recipient-form"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-150"
+              >
+                {editingRecipient ? 'Update Recipient' : 'Add Recipient'}
+              </button>
+            </div>
           </div>
         </div>
       )}

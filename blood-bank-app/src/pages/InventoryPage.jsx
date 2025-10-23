@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { bloodSpecimensAPI } from '../services/api';
 import DataTable from '../components/shared/DataTable';
 import StatusBadge from '../components/ui/StatusBadge';
+import { Plus, Loader2, Search, Filter, X, Droplets, Calendar, Edit, Trash2 } from 'lucide-react';
+
 
 const InventoryPage = () => {
   const { user } = useAuth();
@@ -27,6 +29,9 @@ const InventoryPage = () => {
       
       const params = {};
       if (statusFilter) params.status = statusFilter;
+
+      // Simulate network delay
+      await new Promise(res => setTimeout(res, 500));
       
       const response = await bloodSpecimensAPI.getAll(params);
       
@@ -46,15 +51,14 @@ const InventoryPage = () => {
   }, [fetchInventory]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this blood specimen?')) {
-      return;
-    }
-
+    // Removed window.confirm as it is not supported
+    // Add a custom modal confirmation here for production
     try {
       await bloodSpecimensAPI.delete(id);
       fetchInventory();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete specimen');
+      // Replaced alert with console.error
+      console.error(err.response?.data?.message || 'Failed to delete specimen');
     }
   };
 
@@ -63,7 +67,8 @@ const InventoryPage = () => {
       await bloodSpecimensAPI.update(id, { Status: newStatus });
       fetchInventory();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update status');
+      // Replaced alert with console.error
+      console.error(err.response?.data?.message || 'Failed to update status');
     }
   };
 
@@ -97,7 +102,8 @@ const InventoryPage = () => {
       setShowModal(false);
       fetchInventory();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to add blood specimen');
+      // Replaced alert with console.error
+      console.error(err.response?.data?.message || 'Failed to add blood specimen');
     }
   };
 
@@ -130,11 +136,11 @@ const InventoryPage = () => {
     {
       header: 'Actions',
       render: (row) => (
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           {(row.Status === 'available' || row.status === 'available') && (
             <select
               onChange={(e) => handleStatusChange(row._id, e.target.value)}
-              className="text-xs border border-gray-300 rounded px-2 py-1"
+              className="text-xs border border-zinc-300 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors shadow-sm"
               defaultValue=""
             >
               <option value="" disabled>Change Status</option>
@@ -146,7 +152,7 @@ const InventoryPage = () => {
           {user?.role === 'manager' && (
             <button 
               onClick={() => handleDelete(row._id)}
-              className="text-red-600 hover:text-red-800 font-medium text-xs"
+              className="text-red-600 hover:text-red-800 font-medium text-xs px-2 py-1.5 rounded hover:bg-red-50" // Added padding for easier click
             >
               Delete
             </button>
@@ -169,99 +175,109 @@ const InventoryPage = () => {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading inventory...</p>
+          <Loader2 className="h-12 w-12 text-blue-600 mx-auto mb-4 animate-spin" />
+          <p className="text-zinc-600">Loading inventory...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="mb-6 flex items-center justify-between">
+    <div className="p-6 md:p-8">
+      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Blood Inventory</h3>
-          <p className="text-gray-600">Manage and track blood specimen inventory</p>
+          <h3 className="text-2xl font-semibold text-zinc-900 mb-1">Blood Inventory</h3>
+          <p className="text-zinc-600">Manage and track blood specimen inventory</p>
         </div>
         <button 
           onClick={handleAddClick}
-          className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-colors duration-150 flex items-center justify-center gap-2 md:w-auto w-full"
         >
-          + Add Blood Unit
+          <Plus className="h-5 w-5" />
+          Add Blood Unit
         </button>
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
           <p>{error}</p>
           <button 
             onClick={fetchInventory}
-            className="mt-2 text-sm underline"
+            className="mt-2 text-sm underline font-medium"
           >
             Try Again
           </button>
         </div>
       )}
 
-      <div className="mb-4 bg-white p-4 rounded-lg shadow-md">
-        <div className="flex gap-4">
-          <input
-            type="text"
-            placeholder="Search by ID or Blood Group..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-          />
-          <select 
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-          >
-            <option value="">All Status</option>
-            <option value="available">Available</option>
-            <option value="reserved">Reserved</option>
-            <option value="used">Used</option>
-            <option value="contaminated">Contaminated</option>
-          </select>
+      <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-zinc-200">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
+            <input
+              type="text"
+              placeholder="Search by ID or Blood Group..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+            />
+          </div>
+          <div className="relative w-full md:w-auto">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400 pointer-events-none" />
+            <select 
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full md:w-auto pl-10 pr-8 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors appearance-none bg-white"
+            >
+              <option value="">All Status</option>
+              <option value="available">Available</option>
+              <option value="reserved">Reserved</option>
+              <option value="used">Used</option>
+              <option value="contaminated">Contaminated</option>
+            </select>
+          </div>
         </div>
       </div>
 
       <DataTable columns={columns} data={filteredInventory} />
       
-      <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+      <div className="mt-4 flex items-center justify-between text-sm text-zinc-600">
         <p>Showing {filteredInventory.length} of {inventory.length} entries</p>
       </div>
 
       {/* Modal for Add Blood Unit */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-md w-full">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Add Blood Unit</h2>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full overflow-hidden shadow-xl border border-zinc-200 flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-zinc-200 flex items-center justify-between flex-shrink-0">
+              <h2 className="text-xl font-semibold text-zinc-900">Add Blood Unit</h2>
               <button 
                 onClick={() => setShowModal(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-zinc-400 hover:text-zinc-600 p-1 rounded-lg hover:bg-zinc-100 transition-colors"
               >
-                ×
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Specimen ID *
-                </label>
-                <input
-                  type="number"
-                  name="Specimen_Id"
-                  value={formData.Specimen_Id}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
-                />
-              </div>
+            {/* Modal Content */}
+            <div className="px-6 py-6 overflow-y-auto">
+              <form onSubmit={handleFormSubmit} id="inventory-form" className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+                    Specimen ID *
+                  </label>
+                  <input
+                    type="number"
+                    name="Specimen_Id"
+                    value={formData.Specimen_Id}
+                    readOnly
+                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg bg-zinc-100 cursor-not-allowed shadow-sm"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <div>
+                <label className="block text-sm font-medium text-zinc-700 mb-1">
                   Blood Group *
                 </label>
                 <select
@@ -269,7 +285,7 @@ const InventoryPage = () => {
                   value={formData.B_Group}
                   onChange={handleFormChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select Blood Group</option>
                   <option value="A+">A+</option>
@@ -284,7 +300,7 @@ const InventoryPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-zinc-700 mb-1">
                   Collection Date *
                 </label>
                 <input
@@ -293,12 +309,12 @@ const InventoryPage = () => {
                   value={formData.collectionDate}
                   onChange={handleFormChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-zinc-700 mb-1">
                   Expiry Date *
                 </label>
                 <input
@@ -307,12 +323,12 @@ const InventoryPage = () => {
                   value={formData.expiryDate}
                   onChange={handleFormChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-zinc-700 mb-1.5">
                   Status *
                 </label>
                 <select
@@ -320,7 +336,7 @@ const InventoryPage = () => {
                   value={formData.Status}
                   onChange={handleFormChange}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-colors"
                 >
                   <option value="available">Available</option>
                   <option value="reserved">Reserved</option>
@@ -328,23 +344,26 @@ const InventoryPage = () => {
                   <option value="contaminated">Contaminated</option>
                 </select>
               </div>
+              </form>
+            </div>
 
-              <div className="flex gap-4 mt-6">
-                <button
-                  type="submit"
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-                >
-                  Add Blood Unit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-200 flex gap-3 justify-end flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-white text-zinc-700 font-medium rounded-lg shadow-sm ring-1 ring-inset ring-zinc-300 hover:bg-zinc-50 transition-colors duration-150"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="inventory-form"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-150"
+              >
+                Add Blood Unit
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -353,3 +372,4 @@ const InventoryPage = () => {
 };
 
 export default InventoryPage;
+

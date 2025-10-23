@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { hospitalsAPI, citiesAPI } from '../services/api';
 import DataTable from '../components/shared/DataTable';
+import { Plus, Edit, Trash2, Loader2, Search, X, MapPin, Phone, Building2 } from 'lucide-react';
+
 
 const HospitalsPage = () => {
   const { user } = useAuth();
@@ -37,6 +39,9 @@ const HospitalsPage = () => {
       setLoading(true);
       setError('');
       
+      // Simulate network delay
+      await new Promise(res => setTimeout(res, 500));
+      
       const response = await hospitalsAPI.getAll();
       
       if (response.data.success) {
@@ -57,25 +62,24 @@ const HospitalsPage = () => {
 
   const handleDelete = async (id) => {
     if (user?.role !== 'manager') {
-      alert('Only managers can delete hospitals');
+      console.error('Only managers can delete hospitals');
       return;
     }
 
-    if (!window.confirm('Are you sure you want to delete this hospital?')) {
-      return;
-    }
+    // Removed window.confirm as it is not supported
+    // Add a custom modal confirmation here for production
 
     try {
       await hospitalsAPI.delete(id);
       fetchHospitals();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete hospital');
+      console.error(err.response?.data?.message || 'Failed to delete hospital');
     }
   };
 
   const handleAddClick = () => {
     if (user?.role !== 'manager') {
-      alert('Only managers can add hospitals');
+      console.error('Only managers can add hospitals');
       return;
     }
 
@@ -105,7 +109,7 @@ const HospitalsPage = () => {
 
   const handleEditClick = (hospital) => {
     if (user?.role !== 'manager') {
-      alert('Only managers can edit hospitals');
+      console.error('Only managers can edit hospitals');
       return;
     }
 
@@ -139,7 +143,7 @@ const HospitalsPage = () => {
       setShowModal(false);
       fetchHospitals();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to save hospital');
+      console.error(err.response?.data?.message || 'Failed to save hospital');
     }
   };
 
@@ -177,20 +181,22 @@ const HospitalsPage = () => {
             <>
               <button 
                 onClick={() => handleEditClick(row)}
-                className="text-blue-600 hover:text-blue-800 font-medium text-xs"
+                className="text-blue-600 hover:text-blue-800 p-1.5 rounded hover:bg-blue-50 transition-colors"
+                title="Edit hospital"
               >
-                Edit
+                <Edit className="h-4 w-4" />
               </button>
               <button 
                 onClick={() => handleDelete(row._id)}
-                className="text-red-600 hover:text-red-800 font-medium text-xs"
+                className="text-red-600 hover:text-red-800 p-1.5 rounded hover:bg-red-50 transition-colors"
+                title="Delete hospital"
               >
-                Delete
+                <Trash2 className="h-4 w-4" />
               </button>
             </>
           )}
           {user?.role !== 'manager' && (
-            <span className="text-gray-400 text-xs">Manager Only</span>
+            <span className="text-zinc-400 text-xs">Manager Only</span>
           )}
         </div>
       )
@@ -213,82 +219,90 @@ const HospitalsPage = () => {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading hospitals...</p>
+          <Loader2 className="h-12 w-12 text-blue-600 mx-auto mb-4 animate-spin" />
+          <p className="text-zinc-600">Loading hospitals...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="mb-6 flex items-center justify-between">
+    <div className="p-6 md:p-8">
+      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Hospital Network</h3>
-          <p className="text-gray-600">Manage partner hospitals and blood distribution</p>
+          <h3 className="text-2xl font-semibold text-zinc-900 mb-1">Hospital Network</h3>
+          <p className="text-zinc-600">Manage partner hospitals and blood distribution</p>
         </div>
         {user?.role === 'manager' ? (
           <button 
             onClick={handleAddClick}
-            className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+            // FIXED: Combined className and placed icon inside
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 shadow-sm duration-150 flex items-center gap-2 rounded-lg transition-colors"
           >
-            + Add New Hospital
+            <Plus className="h-5 w-5" />
+            Add New Hospital
           </button>
         ) : (
-          <div className="text-sm text-gray-500 bg-gray-100 px-4 py-2 rounded-lg">
+          <div className="text-sm text-zinc-500 bg-gray-100 px-4 py-2 rounded-lg">
             Manager Access Required
           </div>
         )}
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
           <p>{error}</p>
           <button 
             onClick={fetchHospitals}
-            className="mt-2 text-sm underline"
+            className="mt-2 text-sm underline font-medium"
           >
             Try Again
           </button>
         </div>
       )}
 
-      <div className="mb-4 bg-white p-4 rounded-lg shadow-md">
-        <input
-          type="text"
-          placeholder="Search by name, city, or type..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-        />
+      <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-zinc-200">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
+          <input
+            type="text"
+            placeholder="Search by name, city, or type..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+          />
+        </div>
       </div>
 
       <DataTable columns={columns} data={filteredHospitals} />
       
-      <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+      <div className="mt-4 flex items-center justify-between text-sm text-zinc-600">
         <p>Showing {filteredHospitals.length} of {hospitals.length} hospitals</p>
       </div>
 
       {/* Modal for Add/Edit Hospital */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-xl border border-zinc-200 flex flex-col">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-zinc-200 flex items-center justify-between flex-shrink-0">
+              <h2 className="text-xl font-semibold text-zinc-900">
                 {editingHospital ? 'Edit Hospital' : 'Add New Hospital'}
               </h2>
               <button 
                 onClick={() => setShowModal(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-zinc-400 hover:text-zinc-600 p-1 rounded-lg hover:bg-zinc-100 transition-colors"
               >
-                ×
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            {/* Modal Content */}
+            <div className="px-6 py-6 overflow-y-auto">
+              <form onSubmit={handleFormSubmit} id="hospital-form" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-zinc-700 mb-1">
                     Hospital Name *
                   </label>
                   <input
@@ -297,12 +311,12 @@ const HospitalsPage = () => {
                     value={formData.Hosp_Name}
                     onChange={handleFormChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-zinc-700 mb-1">
                     Phone *
                   </label>
                   <input
@@ -311,12 +325,12 @@ const HospitalsPage = () => {
                     value={formData.Hosp_Phone}
                     onChange={handleFormChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-zinc-700 mb-1">
                     Needed Blood Group *
                   </label>
                   <select
@@ -324,7 +338,7 @@ const HospitalsPage = () => {
                     value={formData.Hosp_Needed_Bgrp}
                     onChange={handleFormChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Select Blood Group</option>
                     <option value="A+">A+</option>
@@ -339,7 +353,7 @@ const HospitalsPage = () => {
                 </div>
 
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-zinc-700 mb-1">
                     City *
                   </label>
                   <select
@@ -347,7 +361,7 @@ const HospitalsPage = () => {
                     value={formData.City_Id}
                     onChange={handleFormChange}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">Select City</option>
                     {cities.map(city => (
@@ -357,24 +371,27 @@ const HospitalsPage = () => {
                     ))}
                   </select>
                 </div>
-              </div>
+                </div>
+              </form>
+            </div>
 
-              <div className="flex gap-4 mt-6">
-                <button
-                  type="submit"
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-                >
-                  {editingHospital ? 'Update Hospital' : 'Add Hospital'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-zinc-50 border-t border-zinc-200 flex gap-3 justify-end flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-white text-zinc-700 font-medium rounded-lg shadow-sm ring-1 ring-inset ring-zinc-300 hover:bg-zinc-50 transition-colors duration-150"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="hospital-form"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-150"
+              >
+                {editingHospital ? 'Update Hospital' : 'Add Hospital'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -383,3 +400,4 @@ const HospitalsPage = () => {
 };
 
 export default HospitalsPage;
+
