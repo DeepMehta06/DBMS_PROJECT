@@ -5,7 +5,7 @@ const Hospital = require('../models/Hospital');
 // @access  Private (staff, manager)
 exports.getAllHospitals = async (req, res) => {
   try {
-    const { city, page = 1, limit = 10 } = req.query;
+    const { city, page = 1, limit = 1000 } = req.query; // Increased default limit to 1000
 
     // Build query
     let query = {};
@@ -137,6 +137,71 @@ exports.deleteHospital = async (req, res) => {
       success: true,
       message: 'Hospital deleted successfully',
       data: {},
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error',
+      error: error.message 
+    });
+  }
+};
+
+// @desc    Approve/Reject hospital account
+// @route   PUT /api/hospitals/:id/approval
+// @access  Private (manager only)
+exports.updateHospitalApproval = async (req, res) => {
+  try {
+    const { isApproved } = req.body;
+    
+    if (isApproved === undefined) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Please provide isApproved status' 
+      });
+    }
+
+    const hospital = await Hospital.findByIdAndUpdate(
+      req.params.id,
+      { isApproved },
+      { new: true }
+    );
+
+    if (!hospital) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Hospital not found' 
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Hospital ${isApproved ? 'approved' : 'rejected'} successfully`,
+      data: hospital,
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error',
+      error: error.message 
+    });
+  }
+};
+
+// @desc    Get pending hospital approvals
+// @route   GET /api/hospitals/pending
+// @access  Private (manager only)
+exports.getPendingHospitals = async (req, res) => {
+  try {
+    const hospitals = await Hospital.find({ 
+      isApproved: false,
+      password: { $exists: true, $ne: null } // Only show hospitals that registered with credentials
+    }).sort({ registrationDate: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: hospitals.length,
+      data: hospitals,
     });
   } catch (error) {
     res.status(500).json({ 

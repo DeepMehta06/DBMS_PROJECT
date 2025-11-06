@@ -38,6 +38,10 @@ app.use('/api/cities', require('./routes/city.routes'));
 app.use('/api/managers', require('./routes/bbManager.routes'));
 app.use('/api/recording-staff', require('./routes/recordingStaff.routes'));
 app.use('/api/relationships', require('./routes/relationship.routes'));
+// Hospital portal routes
+app.use('/api/hospital/auth', require('./routes/hospitalAuth.routes'));
+app.use('/api/chat', require('./routes/chat.routes'));
+app.use('/api/requests', require('./routes/bloodRequest.routes'));
 
 // Root route
 app.get('/', (req, res) => {

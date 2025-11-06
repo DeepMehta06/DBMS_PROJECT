@@ -11,7 +11,13 @@ const API = axios.create({
 // Request interceptor to add JWT token to every request
 API.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    // Check if it's a hospital route
+    const isHospitalRoute = config.url?.includes('/hospital/') || config.url?.includes('/chat/hospital') || config.url?.includes('/requests/hospital');
+    
+    const token = isHospitalRoute 
+      ? localStorage.getItem('hospitalToken')
+      : localStorage.getItem('token');
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -29,10 +35,22 @@ API.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      // Unauthorized - clear token and redirect to login
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      // Check if it's a hospital route
+      const isHospitalRoute = error.config?.url?.includes('/hospital/') || 
+                             error.config?.url?.includes('/chat/hospital') || 
+                             error.config?.url?.includes('/requests/hospital');
+      
+      if (isHospitalRoute) {
+        // Unauthorized hospital - clear hospital token and redirect to hospital login
+        localStorage.removeItem('hospitalToken');
+        localStorage.removeItem('hospital');
+        window.location.href = '/hospital/login';
+      } else {
+        // Unauthorized admin - clear token and redirect to admin login
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
@@ -91,6 +109,56 @@ export const citiesAPI = {
   getById: (id) => API.get(`/cities/${id}`),
   create: (data) => API.post('/cities', data),
   delete: (id) => API.delete(`/cities/${id}`),
+};
+
+// Hospital Portal API calls
+export const hospitalAuthAPI = {
+  register: (hospitalData) => API.post('/hospital/auth/register', hospitalData),
+  login: (credentials) => API.post('/hospital/auth/login', credentials),
+  getProfile: () => API.get('/hospital/auth/me'),
+  updateProfile: (data) => API.put('/hospital/auth/profile', data),
+  changePassword: (data) => API.put('/hospital/auth/change-password', data),
+};
+
+// Hospital Chat API calls
+export const hospitalChatAPI = {
+  sendMessage: (message) => API.post('/chat/hospital/send', { message }),
+  getMessages: () => API.get('/chat/hospital/messages'),
+  getUnreadCount: () => API.get('/chat/hospital/unread-count'),
+};
+
+// Hospital Blood Requests API calls
+export const hospitalRequestsAPI = {
+  create: (data) => API.post('/requests/hospital', data),
+  getAll: (params) => API.get('/requests/hospital', { params }),
+  getById: (id) => API.get(`/requests/hospital/${id}`),
+  cancel: (id) => API.put(`/requests/hospital/${id}/cancel`),
+  getStats: () => API.get('/requests/hospital/stats'),
+  checkAvailability: (bloodGroup) => API.get(`/requests/hospital/blood-availability/${bloodGroup}`),
+  getInventory: () => API.get('/requests/hospital/inventory'),
+  getInventorySummary: () => API.get('/requests/hospital/inventory/summary'),
+};
+
+// Admin Chat API calls
+export const adminChatAPI = {
+  getConversations: () => API.get('/chat/admin/conversations'),
+  getMessages: (hospitalId) => API.get(`/chat/admin/messages/${hospitalId}`),
+  sendMessage: (hospitalId, message) => API.post(`/chat/admin/send/${hospitalId}`, { message }),
+  getUnreadCount: () => API.get('/chat/admin/unread-count'),
+};
+
+// Admin Blood Requests API calls
+export const adminRequestsAPI = {
+  getAll: (params) => API.get('/requests/admin', { params }),
+  updateStatus: (id, status, adminNotes) => API.put(`/requests/admin/${id}/status`, { status, adminNotes }),
+  getStats: () => API.get('/requests/admin/stats'),
+};
+
+// Admin Hospital Management API calls (addition to existing hospitalsAPI)
+export const adminHospitalsAPI = {
+  ...hospitalsAPI,
+  getPending: () => API.get('/hospitals/pending'),
+  updateApproval: (id, isApproved) => API.put(`/hospitals/${id}/approval`, { isApproved }),
 };
 
 export default API;

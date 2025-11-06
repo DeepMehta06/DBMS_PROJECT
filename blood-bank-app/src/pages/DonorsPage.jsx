@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { donorsAPI, citiesAPI } from '../services/api';
 import DataTable from '../components/shared/DataTable';
 import { Plus, Edit, Trash2, Phone, Loader2, Search, Filter, X, MapPin, ChevronDown } from 'lucide-react';
 
 const DonorsPage = () => {
   const { user } = useAuth();
+  const { success, error: showError } = useToast();
   const [donors, setDonors] = useState([]);
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,10 +71,10 @@ const DonorsPage = () => {
 
     try {
       await donorsAPI.delete(id);
-      // Refresh the list after deletion
+      success('Donor deleted', 'Donor has been removed from the system');
       fetchDonors();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete donor');
+      showError('Failed to delete donor', err.response?.data?.message || 'Please try again later');
     }
   };
 
@@ -115,14 +117,19 @@ const DonorsPage = () => {
     try {
       if (editingDonor) {
         await donorsAPI.update(editingDonor._id, formData);
+        success('Donor updated', `${formData.Bd_Name}'s information has been updated successfully`);
       } else {
         await donorsAPI.create(formData);
+        success('Donor added', `${formData.Bd_Name} has been added to the system`);
       }
       
       setShowModal(false);
       fetchDonors();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to save donor');
+      showError(
+        editingDonor ? 'Failed to update donor' : 'Failed to add donor',
+        err.response?.data?.message || 'Please try again later'
+      );
     }
   };
 

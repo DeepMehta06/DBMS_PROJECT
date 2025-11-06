@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { hospitalsAPI, citiesAPI } from '../services/api';
 import DataTable from '../components/shared/DataTable';
 import { Plus, Edit, Trash2, Loader2, Search, X } from 'lucide-react';
@@ -7,6 +8,7 @@ import { Plus, Edit, Trash2, Loader2, Search, X } from 'lucide-react';
 
 const HospitalsPage = () => {
   const { user } = useAuth();
+  const { success, error: showError, warning } = useToast();
   const [hospitals, setHospitals] = useState([]);
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,7 +20,10 @@ const HospitalsPage = () => {
     Hosp_Name: '',
     Hosp_Phone: '',
     Hosp_Needed_Bgrp: '',
-    City_Id: ''
+    City_Id: '',
+    email: '',
+    password: '',
+    isApproved: true // Auto-approve when admin creates
   });
 
   // Fetch cities from API
@@ -62,7 +67,7 @@ const HospitalsPage = () => {
 
   const handleDelete = async (id) => {
     if (user?.role !== 'manager') {
-      console.error('Only managers can delete hospitals');
+      warning('Permission denied', 'Only managers can delete hospitals');
       return;
     }
 
@@ -71,15 +76,16 @@ const HospitalsPage = () => {
 
     try {
       await hospitalsAPI.delete(id);
+      success('Hospital deleted', 'Hospital has been removed from the system');
       fetchHospitals();
     } catch (err) {
-      console.error(err.response?.data?.message || 'Failed to delete hospital');
+      showError('Failed to delete hospital', err.response?.data?.message || 'Please try again later');
     }
   };
 
   const handleAddClick = () => {
     if (user?.role !== 'manager') {
-      console.error('Only managers can add hospitals');
+      warning('Permission denied', 'Only managers can add hospitals');
       return;
     }
 
@@ -88,7 +94,10 @@ const HospitalsPage = () => {
       Hosp_Name: '',
       Hosp_Phone: '',
       Hosp_Needed_Bgrp: '',
-      City_Id: ''
+      City_Id: '',
+      email: '',
+      password: '',
+      isApproved: true
     });
     setShowModal(true);
   };
@@ -109,7 +118,7 @@ const HospitalsPage = () => {
 
   const handleEditClick = (hospital) => {
     if (user?.role !== 'manager') {
-      console.error('Only managers can edit hospitals');
+      warning('Permission denied', 'Only managers can edit hospitals');
       return;
     }
 
@@ -136,14 +145,20 @@ const HospitalsPage = () => {
     try {
       if (editingHospital) {
         await hospitalsAPI.update(editingHospital._id, formData);
+        success('Hospital updated', `${formData.Hosp_Name}'s information has been updated successfully`);
       } else {
         await hospitalsAPI.create(formData);
+        success('Hospital added', `${formData.Hosp_Name} has been added to the system with login credentials`);
       }
       
       setShowModal(false);
       fetchHospitals();
     } catch (err) {
-      console.error(err.response?.data?.message || 'Failed to save hospital');
+      const errorMsg = err.response?.data?.error || err.response?.data?.message || 'Failed to save hospital';
+      showError(
+        editingHospital ? 'Failed to update hospital' : 'Failed to add hospital',
+        errorMsg
+      );
     }
   };
 
@@ -371,6 +386,48 @@ const HospitalsPage = () => {
                     ))}
                   </select>
                 </div>
+
+                {/* NEW: Hospital Portal Login Credentials */}
+                {!editingHospital && (
+                  <>
+                    <div className="col-span-2 mt-4 pt-4 border-t border-zinc-200">
+                      <h3 className="text-sm font-semibold text-zinc-900 mb-3">Hospital Portal Access</h3>
+                      <p className="text-xs text-zinc-600 mb-3">Provide login credentials for the hospital to access their portal</p>
+                    </div>
+
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-zinc-700 mb-1">
+                        Email *
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleFormChange}
+                        required={!editingHospital}
+                        placeholder="hospital@example.com"
+                        className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-zinc-700 mb-1">
+                        Password *
+                      </label>
+                      <input
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleFormChange}
+                        required={!editingHospital}
+                        minLength="6"
+                        placeholder="Minimum 6 characters"
+                        className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                      <p className="text-xs text-zinc-500 mt-1">Hospital will use this to login at /hospital/login</p>
+                    </div>
+                  </>
+                )}
                 </div>
               </form>
             </div>

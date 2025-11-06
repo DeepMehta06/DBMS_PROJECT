@@ -5,7 +5,7 @@ const Recipient = require('../models/Recipient');
 // @access  Private (staff, manager)
 exports.getAllRecipients = async (req, res) => {
   try {
-    const { bloodGroup, status, page = 1, limit = 10 } = req.query;
+    const { bloodGroup, status, page = 1, limit = 1000 } = req.query; // Increased default limit to 1000
 
     // Build query
     let query = {};

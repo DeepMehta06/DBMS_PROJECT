@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const hospitalSchema = new mongoose.Schema({
   // SQL Schema fields (Primary)
@@ -22,15 +23,14 @@ const hospitalSchema = new mongoose.Schema({
     maxlength: 10
   },
   City_Id: {
-    type: Number,
-    ref: 'City'
+    type: Number
   },
   
   // Old fields for backward compatibility
   name: {
     type: String,
     trim: true,
-    unique: true,
+    sparse: true, // Allow non-unique values
   },
   city: {
     type: String,
@@ -48,6 +48,24 @@ const hospitalSchema = new mongoose.Schema({
     type: String,
     trim: true,
     lowercase: true,
+    sparse: true, // Allow multiple null values but unique non-null
+  },
+  // NEW: Authentication fields for hospital login
+  password: {
+    type: String,
+    minlength: 6,
+    select: false // Don't return password by default
+  },
+  isApproved: {
+    type: Boolean,
+    default: false // Admin must approve new hospitals
+  },
+  registrationDate: {
+    type: Date,
+    default: Date.now
+  },
+  lastLogin: {
+    type: Date
   },
   type: {
     type: String,
@@ -74,6 +92,21 @@ hospitalSchema.pre('save', function(next) {
   
   next();
 });
+
+// Hash password before saving
+hospitalSchema.pre('save', async function(next) {
+  if (!this.isModified('password') || !this.password) return next();
+  
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+// Method to compare password
+hospitalSchema.methods.comparePassword = async function(candidatePassword) {
+  if (!this.password) return false;
+  return await bcrypt.compare(candidatePassword, this.password);
+};
 
 // Index for faster queries
 hospitalSchema.index({ Hosp_Needed_Bgrp: 1 });

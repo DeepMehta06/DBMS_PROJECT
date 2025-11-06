@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { bloodSpecimensAPI } from '../services/api';
 import DataTable from '../components/shared/DataTable';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -8,6 +9,7 @@ import { Plus, Loader2, Search, Filter, X, ChevronDown } from 'lucide-react';
 
 const InventoryPage = () => {
   const { user } = useAuth();
+  const { success, error: showError } = useToast();
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -55,20 +57,26 @@ const InventoryPage = () => {
     // Add a custom modal confirmation here for production
     try {
       await bloodSpecimensAPI.delete(id);
+      success('Specimen deleted', 'Blood specimen has been removed from inventory');
       fetchInventory();
     } catch (err) {
-      // Replaced alert with console.error
-      console.error(err.response?.data?.message || 'Failed to delete specimen');
+      showError('Failed to delete specimen', err.response?.data?.message || 'Please try again later');
     }
   };
 
   const handleStatusChange = async (id, newStatus) => {
     try {
       await bloodSpecimensAPI.update(id, { Status: newStatus });
+      const statusMessages = {
+        available: 'Specimen marked available',
+        used: 'Specimen marked as used',
+        expired: 'Specimen marked as expired',
+        reserved: 'Specimen reserved'
+      };
+      success(statusMessages[newStatus] || 'Status updated', `Blood specimen status changed to ${newStatus}`);
       fetchInventory();
     } catch (err) {
-      // Replaced alert with console.error
-      console.error(err.response?.data?.message || 'Failed to update status');
+      showError('Failed to update status', err.response?.data?.message || 'Please try again later');
     }
   };
 
@@ -99,11 +107,11 @@ const InventoryPage = () => {
     
     try {
       await bloodSpecimensAPI.create(formData);
+      success('Blood specimen added', `${formData.B_Group} blood specimen has been added to inventory`);
       setShowModal(false);
       fetchInventory();
     } catch (err) {
-      // Replaced alert with console.error
-      console.error(err.response?.data?.message || 'Failed to add blood specimen');
+      showError('Failed to add blood specimen', err.response?.data?.message || 'Please try again later');
     }
   };
 

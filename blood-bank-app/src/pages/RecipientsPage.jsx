@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { recipientsAPI, citiesAPI } from '../services/api';
 import DataTable from '../components/shared/DataTable';
 import StatusBadge from '../components/ui/StatusBadge';
@@ -7,6 +8,7 @@ import { Plus, Edit, Trash2, Loader2, Search, Filter, X, ChevronDown } from 'luc
 
 const RecipientsPage = () => {
   const { user } = useAuth();
+  const { success, error: showError } = useToast();
   const [recipients, setRecipients] = useState([]);
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -71,10 +73,10 @@ const RecipientsPage = () => {
 
     try {
       await recipientsAPI.delete(id);
+      success('Recipient deleted', 'Recipient has been removed from the system');
       fetchRecipients();
     } catch (err) {
-      // Replaced alert with console.error
-      console.error(err.response?.data?.message || 'Failed to delete recipient');
+      showError('Failed to delete recipient', err.response?.data?.message || 'Please try again later');
     }
   };
 
@@ -121,25 +123,34 @@ const RecipientsPage = () => {
     try {
       if (editingRecipient) {
         await recipientsAPI.update(editingRecipient._id, formData);
+        success('Recipient updated', `${formData.Reci_Name}'s information has been updated successfully`);
       } else {
         await recipientsAPI.create(formData);
+        success('Recipient added', `${formData.Reci_Name} has been added to the system`);
       }
       
       setShowModal(false);
       fetchRecipients();
     } catch (err) {
-      // Replaced alert with console.error
-      console.error(err.response?.data?.message || 'Failed to save recipient');
+      showError(
+        editingRecipient ? 'Failed to update recipient' : 'Failed to add recipient', 
+        err.response?.data?.message || 'Please try again later'
+      );
     }
   };
 
   const handleStatusChange = async (id, newStatus) => {
     try {
       await recipientsAPI.update(id, { status: newStatus });
+      const statusMessages = {
+        approved: 'Request approved',
+        fulfilled: 'Request fulfilled',
+        rejected: 'Request rejected'
+      };
+      success(statusMessages[newStatus] || 'Status updated', `Recipient status changed to ${newStatus}`);
       fetchRecipients();
     } catch (err) {
-      // Replaced alert with console.error
-      console.error(err.response?.data?.message || 'Failed to update status');
+      showError('Failed to update status', err.response?.data?.message || 'Please try again later');
     }
   };
 

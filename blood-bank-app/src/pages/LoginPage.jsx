@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, LogIn, Loader2, Droplets } from 'lucide-react';
+import { useHospitalAuth } from '../context/HospitalAuthContext';
+import { useToast } from '../context/ToastContext';
+import { Mail, Lock, LogIn, Loader2, Droplets, Building2, Shield } from 'lucide-react';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, isLoggedIn } = useAuth();
+  const { login: adminLogin, isLoggedIn } = useAuth();
+  const { login: hospitalLogin, isHospitalLoggedIn } = useHospitalAuth();
+  const { success, error: showError, warning } = useToast();
+  const [loginType, setLoginType] = useState('admin'); // 'admin' or 'hospital'
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -18,7 +23,10 @@ const LoginPage = () => {
     if (isLoggedIn) {
       navigate('/dashboard');
     }
-  }, [isLoggedIn, navigate]);
+    if (isHospitalLoggedIn) {
+      navigate('/hospital/dashboard');
+    }
+  }, [isLoggedIn, isHospitalLoggedIn, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,15 +34,38 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      const result = await login(formData.email, formData.password);
-      
-      if (result.success) {
-        navigate('/dashboard');
+      if (loginType === 'admin') {
+        // Admin login
+        const result = await adminLogin(formData.email, formData.password);
+        
+        if (result.success) {
+          success('Login successful', 'Welcome back to Blood Bank Management System');
+          navigate('/dashboard');
+        } else {
+          setError(result.error || 'Login failed. Please try again.');
+          showError('Login failed', result.error || 'Invalid email or password');
+        }
       } else {
-        setError(result.error || 'Login failed. Please try again.');
+        // Hospital login
+        const result = await hospitalLogin(formData);
+        
+        if (result.success) {
+          success('Login successful', 'Welcome to Hospital Portal');
+          setTimeout(() => {
+            navigate('/hospital/dashboard');
+          }, 500);
+        } else {
+          setError(result.message || 'Login failed. Please try again.');
+          if (result.message && result.message.includes('not approved')) {
+            warning('Account pending approval', 'Your hospital account is awaiting admin approval');
+          } else {
+            showError('Login failed', result.message || 'Invalid email or password');
+          }
+        }
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
+      showError('Login error', 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -49,21 +80,64 @@ const LoginPage = () => {
     if (error) setError('');
   };
 
+  const switchLoginType = (type) => {
+    setLoginType(type);
+    setError('');
+    setFormData({ email: '', password: '' });
+  };
+
   return (
     <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md border border-zinc-200 overflow-hidden">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md border border-zinc-200 overflow-hidden min-h-[600px] flex flex-col">
         {/* Header Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-10 text-center">
+        <div className={`bg-gradient-to-r ${loginType === 'admin' ? 'from-blue-600 to-blue-700' : 'from-emerald-600 to-emerald-700'} px-8 py-10 text-center transition-all duration-300`}>
           <div className="inline-flex items-center justify-center w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full mb-4">
-            <Droplets className="h-8 w-8 text-white" />
+            {loginType === 'admin' ? (
+              <Shield className="h-8 w-8 text-white" />
+            ) : (
+              <Building2 className="h-8 w-8 text-white" />
+            )}
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Blood Bank MS</h1>
-          <p className="text-blue-100">Management System Login</p>
+          <p className="text-white/90">
+            {loginType === 'admin' ? 'Admin Portal' : 'Hospital Portal'}
+          </p>
+        </div>
+
+        {/* Login Type Tabs */}
+        <div className="flex border-b border-zinc-200">
+          <button
+            type="button"
+            onClick={() => switchLoginType('admin')}
+            className={`flex-1 py-4 text-sm font-semibold transition-colors ${
+              loginType === 'admin'
+                ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
+                : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+            }`}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <Shield className="h-4 w-4 flex-shrink-0" />
+              <span>Admin</span>
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => switchLoginType('hospital')}
+            className={`flex-1 py-4 text-sm font-semibold transition-colors ${
+              loginType === 'hospital'
+                ? 'text-emerald-600 border-b-2 border-emerald-600 bg-emerald-50/50'
+                : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50'
+            }`}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <Building2 className="h-4 w-4 flex-shrink-0" />
+              <span>Hospital</span>
+            </div>
+          </button>
         </div>
 
         {/* Form Section */}
-        <div className="px-8 py-8">
-          {error && (
+        <div className="px-8 py-8">{error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
               <p className="text-sm">{error}</p>
             </div>
@@ -83,7 +157,7 @@ const LoginPage = () => {
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full pl-10 pr-4 py-2.5 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-colors"
-                  placeholder="admin@bloodbank.com"
+                  placeholder={loginType === 'admin' ? 'admin@bloodbank.com' : 'hospital@example.com'}
                   required
                   disabled={loading}
                 />
@@ -131,7 +205,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg shadow-sm transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className={`w-full ${loginType === 'admin' ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500' : 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500'} text-white font-medium py-2.5 rounded-lg shadow-sm transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
             >
               {loading ? (
                 <>
@@ -149,7 +223,11 @@ const LoginPage = () => {
 
           <div className="mt-6 pt-6 border-t border-zinc-200 text-center">
             <p className="text-sm text-zinc-600">
-              Need to register? <span className="text-blue-600 font-medium">Contact your system administrator</span>
+              {loginType === 'admin' ? (
+                <>Need to register? <span className="text-blue-600 font-medium">Contact your system administrator</span></>
+              ) : (
+                <>Need hospital registration? <span className="text-emerald-600 font-medium">Contact admin to create your account</span></>
+              )}
             </p>
           </div>
         </div>

@@ -5,19 +5,19 @@ const BloodSpecimen = require('../models/BloodSpecimen');
 // @access  Private (staff, manager)
 exports.getAllBloodSpecimens = async (req, res) => {
   try {
-    const { bloodGroup, status, page = 1, limit = 10 } = req.query;
+    const { bloodGroup, status, page = 1, limit = 1000 } = req.query; // Increased default limit to 1000
 
     // Build query
     let query = {};
-    if (bloodGroup) query.bloodGroup = bloodGroup;
+    if (bloodGroup) query.B_Group = bloodGroup;
     if (status) query.status = status;
 
     // Execute query with pagination
     const specimens = await BloodSpecimen.find(query)
-      .populate('donor', 'name bloodGroup phone')
+      .populate('donor', 'name bloodGroup')
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .sort({ collectionDate: -1 });
+      .sort({ createdAt: -1 });
 
     const count = await BloodSpecimen.countDocuments(query);
 

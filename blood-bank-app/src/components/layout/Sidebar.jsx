@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Droplets, Users, Heart, Building2, X } from 'lucide-react';
+import { LayoutDashboard, Droplets, Users, Heart, Building2, MessageSquare, Package, X } from 'lucide-react';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const navItems = [
@@ -9,6 +9,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { name: 'Donors', path: '/donors', icon: Users },
     { name: 'Recipients', path: '/recipients', icon: Heart },
     { name: 'Hospitals', path: '/hospitals', icon: Building2 },
+    { name: 'Hospital Chats', path: '/chat', icon: MessageSquare },
+    { name: 'Blood Requests', path: '/requests', icon: Package },
   ];
 
   return (

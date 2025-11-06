@@ -6,12 +6,20 @@ const {
   createHospital,
   updateHospital,
   deleteHospital,
+  updateHospitalApproval,
+  getPendingHospitals,
 } = require('../controllers/hospitalController');
 const isAuthenticated = require('../middleware/isAuthenticated');
 const isAuthorized = require('../middleware/isAuthorized');
 
 // All routes require authentication
 router.use(isAuthenticated);
+
+// Get pending hospitals (manager only)
+router.get('/pending', isAuthorized('manager'), getPendingHospitals);
+
+// Approve/Reject hospital (manager only)
+router.put('/:id/approval', isAuthorized('manager'), updateHospitalApproval);
 
 // CRUD routes
 router.route('/')

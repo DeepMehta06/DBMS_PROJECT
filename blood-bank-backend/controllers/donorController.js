@@ -5,7 +5,7 @@ const Donor = require('../models/Donor');
 // @access  Private (staff, manager)
 exports.getAllDonors = async (req, res) => {
   try {
-    const { bloodGroup, city, page = 1, limit = 10 } = req.query;
+    const { bloodGroup, city, page = 1, limit = 1000 } = req.query; // Increased default limit to 1000
 
     // Build query
     let query = {};
