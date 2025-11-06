@@ -125,8 +125,16 @@ const RecipientsPage = () => {
         await recipientsAPI.update(editingRecipient._id, formData);
         success('Recipient updated', `${formData.Reci_Name}'s information has been updated successfully`);
       } else {
-        await recipientsAPI.create(formData);
-        success('Recipient added', `${formData.Reci_Name} has been added to the system`);
+        const response = await recipientsAPI.create(formData);
+        const bloodUsed = response.data.data.bloodUsed;
+        if (bloodUsed) {
+          success(
+            'Recipient added & Blood issued', 
+            `${formData.Reci_Name} has been added and ${bloodUsed.quantity} units of ${bloodUsed.bloodGroup} blood marked as used in inventory`
+          );
+        } else {
+          success('Recipient added', `${formData.Reci_Name} has been added to the system`);
+        }
       }
       
       setShowModal(false);

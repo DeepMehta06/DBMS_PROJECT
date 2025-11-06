@@ -265,21 +265,21 @@ const AdminRequestsPage = () => {
               key={request._id}
               className="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow"
             >
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
                 <div className="flex items-start gap-4">
-                  <div className="bg-blue-100 p-3 rounded-lg">
+                  <div className="bg-blue-100 p-3 rounded-lg flex-shrink-0">
                     <Building2 className="w-6 h-6 text-blue-600" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-lg text-gray-900">
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-lg text-gray-900 break-words">
                       {request.hospitalName}
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 truncate">
                       Request ID: {request._id}
                     </p>
                   </div>
                 </div>
-                <div className={`px-3 py-1 rounded-full border flex items-center gap-2 ${getStatusColor(request.status)}`}>
+                <div className={`px-3 py-1 rounded-full border flex items-center gap-2 whitespace-nowrap flex-shrink-0 ${getStatusColor(request.status)}`}>
                   {getStatusIcon(request.status)}
                   <span className="text-sm font-medium capitalize">{request.status}</span>
                 </div>

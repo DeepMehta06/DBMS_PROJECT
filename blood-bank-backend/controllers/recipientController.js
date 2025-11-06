@@ -1,4 +1,5 @@
 const Recipient = require('../models/Recipient');
+const BloodSpecimen = require('../models/BloodSpecimen');
 
 // @desc    Get all recipients
 // @route   GET /api/recipients
@@ -71,11 +72,66 @@ exports.createRecipient = async (req, res) => {
   try {
     const recipient = await Recipient.create(req.body);
 
-    res.status(201).json({
-      success: true,
-      message: 'Recipient created successfully',
-      data: recipient,
-    });
+    // Automatically reduce inventory by marking blood specimens as "used"
+    const bloodGroup = recipient.Reci_Bgrp || recipient.bloodGroup;
+    const quantity = recipient.Reci_Bqty || recipient.bloodQuantity || 1;
+
+    if (bloodGroup && quantity > 0) {
+      // Find available blood specimens of matching blood group
+      const availableSpecimens = await BloodSpecimen.find({
+        $or: [
+          { B_Group: bloodGroup },
+          { bloodGroup: bloodGroup }
+        ],
+        $or: [
+          { Status: 'available' },
+          { status: 'available' }
+        ]
+      })
+        .limit(quantity)
+        .sort({ collectionDate: 1 }); // Use oldest blood first (FIFO)
+
+      if (availableSpecimens.length < quantity) {
+        // Not enough blood in inventory
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient blood inventory. Available: ${availableSpecimens.length} units, Required: ${quantity} units`,
+          data: { recipient }
+        });
+      }
+
+      // Mark specimens as "used"
+      const specimenIds = availableSpecimens.map(s => s._id);
+      await BloodSpecimen.updateMany(
+        { _id: { $in: specimenIds } },
+        {
+          $set: {
+            Status: 'used',
+            status: 'used',
+            usedDate: new Date()
+          }
+        }
+      );
+
+      res.status(201).json({
+        success: true,
+        message: `Recipient created successfully and ${quantity} units of ${bloodGroup} blood marked as used`,
+        data: {
+          recipient,
+          bloodUsed: {
+            bloodGroup,
+            quantity,
+            specimenIds: availableSpecimens.map(s => s.specimenNumber || s._id)
+          }
+        }
+      });
+    } else {
+      res.status(201).json({
+        success: true,
+        message: 'Recipient created successfully',
+        data: recipient,
+      });
+    }
   } catch (error) {
     res.status(400).json({ 
       success: false, 
