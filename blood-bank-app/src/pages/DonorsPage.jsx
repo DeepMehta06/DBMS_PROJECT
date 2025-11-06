@@ -119,8 +119,11 @@ const DonorsPage = () => {
         await donorsAPI.update(editingDonor._id, formData);
         success('Donor updated', `${formData.Bd_Name}'s information has been updated successfully`);
       } else {
-        await donorsAPI.create(formData);
-        success('Donor added', `${formData.Bd_Name} has been added to the system`);
+        const response = await donorsAPI.create(formData);
+        success(
+          'Donor added & Blood collected', 
+          `${formData.Bd_Name} has been added and blood specimen ${response.data.data.bloodSpecimen?.specimenNumber || ''} added to inventory`
+        );
       }
       
       setShowModal(false);

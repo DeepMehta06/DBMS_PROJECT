@@ -1,4 +1,5 @@
 const Donor = require('../models/Donor');
+const BloodSpecimen = require('../models/BloodSpecimen');
 
 // @desc    Get all donors
 // @route   GET /api/donors
@@ -69,12 +70,41 @@ exports.getDonorById = async (req, res) => {
 // @access  Private (staff, manager)
 exports.createDonor = async (req, res) => {
   try {
+    // Create donor
     const donor = await Donor.create(req.body);
+
+    // Automatically create blood specimen for this donation
+    const collectionDate = new Date();
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + 42); // Blood expires in 42 days
+
+    // Generate unique specimen number
+    const specimenCount = await BloodSpecimen.countDocuments();
+    const specimenNumber = `SP${String(specimenCount + 1).padStart(6, '0')}`;
+
+    const bloodSpecimen = await BloodSpecimen.create({
+      specimenNumber,
+      bloodGroup: donor.bloodGroup,
+      B_Group: donor.bloodGroup,
+      Status: 'available',
+      status: 'available',
+      collectionDate,
+      expiryDate,
+      donor: donor._id
+    });
 
     res.status(201).json({
       success: true,
-      message: 'Donor created successfully',
-      data: donor,
+      message: 'Donor created successfully and blood specimen added to inventory',
+      data: {
+        donor,
+        bloodSpecimen: {
+          id: bloodSpecimen._id,
+          specimenNumber: bloodSpecimen.specimenNumber,
+          bloodGroup: bloodSpecimen.bloodGroup,
+          status: bloodSpecimen.status
+        }
+      }
     });
   } catch (error) {
     res.status(400).json({ 

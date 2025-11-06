@@ -71,6 +71,20 @@ exports.getBloodSpecimenById = async (req, res) => {
 // @access  Private (staff, manager)
 exports.createBloodSpecimen = async (req, res) => {
   try {
+    // Generate unique specimen number if not provided
+    if (!req.body.specimenNumber) {
+      const specimenCount = await BloodSpecimen.countDocuments();
+      req.body.specimenNumber = `SP${String(specimenCount + 1).padStart(6, '0')}`;
+    }
+
+    // Sync fields for backward compatibility
+    if (req.body.B_Group) {
+      req.body.bloodGroup = req.body.B_Group;
+    }
+    if (req.body.Status) {
+      req.body.status = req.body.Status;
+    }
+
     const specimen = await BloodSpecimen.create(req.body);
 
     res.status(201).json({
@@ -79,6 +93,7 @@ exports.createBloodSpecimen = async (req, res) => {
       data: specimen,
     });
   } catch (error) {
+    console.error('Error creating blood specimen:', error);
     res.status(400).json({ 
       success: false, 
       message: 'Failed to create blood specimen',

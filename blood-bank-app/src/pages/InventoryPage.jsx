@@ -17,11 +17,12 @@ const InventoryPage = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
-    Specimen_Id: '',
     B_Group: '',
+    bloodGroup: '',
     collectionDate: '',
     expiryDate: '',
-    Status: 'available'
+    Status: 'available',
+    status: 'available'
   });
 
   const fetchInventory = useCallback(async () => {
@@ -96,9 +97,15 @@ const InventoryPage = () => {
   };
 
   const handleFormChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value,
+      // Sync both field names for compatibility
+      ...(name === 'B_Group' && { bloodGroup: value }),
+      ...(name === 'bloodGroup' && { B_Group: value }),
+      ...(name === 'Status' && { status: value }),
+      ...(name === 'status' && { Status: value })
     });
   };
 
@@ -273,19 +280,6 @@ const InventoryPage = () => {
             <div className="px-6 py-6 overflow-y-auto">
               <form onSubmit={handleFormSubmit} id="inventory-form" className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-zinc-700 mb-1.5">
-                    Specimen ID *
-                  </label>
-                  <input
-                    type="number"
-                    name="Specimen_Id"
-                    value={formData.Specimen_Id}
-                    readOnly
-                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg bg-zinc-100 cursor-not-allowed shadow-sm"
-                  />
-                </div>
-
-                <div>
                 <label className="block text-sm font-medium text-zinc-700 mb-1">
                   Blood Group *
                 </label>
@@ -294,7 +288,7 @@ const InventoryPage = () => {
                   value={formData.B_Group}
                   onChange={handleFormChange}
                   required
-                  className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
                 >
                   <option value="">Select Blood Group</option>
                   <option value="A+">A+</option>
@@ -318,7 +312,7 @@ const InventoryPage = () => {
                   value={formData.collectionDate}
                   onChange={handleFormChange}
                   required
-                  className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
                 />
               </div>
 
