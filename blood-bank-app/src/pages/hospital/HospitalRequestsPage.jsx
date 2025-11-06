@@ -145,9 +145,9 @@ const HospitalRequestsPage = () => {
     <div className="min-h-screen bg-zinc-50">
       {/* Header */}
       <div className="bg-white border-b border-zinc-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               <Link 
                 to="/hospital/dashboard"
                 className="p-2 hover:bg-zinc-100 rounded-lg transition-colors"
@@ -156,36 +156,37 @@ const HospitalRequestsPage = () => {
                 <ArrowLeft className="h-5 w-5 text-zinc-600" />
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-zinc-900">Blood Requests</h1>
-                <p className="text-zinc-600 mt-1">Manage your blood requests</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-zinc-900">Blood Requests</h1>
+                <p className="text-sm sm:text-base text-zinc-600 mt-1 hidden sm:block">Manage your blood requests</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={() => setShowModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm sm:text-base"
               >
-                <Plus className="h-5 w-5" />
-                New Request
+                <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="hidden sm:inline">New Request</span>
+                <span className="sm:hidden">New</span>
               </button>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors font-medium"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors font-medium"
                 title="Logout"
               >
-                <LogOut className="h-5 w-5" />
+                <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex gap-2 mt-6 flex-wrap">
+          <div className="flex gap-2 mt-4 sm:mt-6 flex-wrap">
             {['', 'pending', 'approved', 'fulfilled', 'rejected'].map((status) => (
               <button
                 key={status}
                 onClick={() => setSelectedStatus(status)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-lg font-medium transition-colors ${
                   selectedStatus === status
                     ? 'bg-blue-600 text-white'
                     : 'bg-white text-zinc-700 border border-zinc-300 hover:border-zinc-400'
@@ -199,7 +200,7 @@ const HospitalRequestsPage = () => {
       </div>
 
       {/* Requests List */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {loading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
@@ -222,21 +223,21 @@ const HospitalRequestsPage = () => {
             {requests.map((request) => (
               <div
                 key={request._id}
-                className="bg-white rounded-lg shadow-sm border border-zinc-200 p-6 hover:shadow-md transition-shadow"
+                className="bg-white rounded-lg shadow-sm border border-zinc-200 p-4 sm:p-6 hover:shadow-md transition-shadow"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-red-100 rounded-lg">
-                      <Droplets className="h-6 w-6 text-red-600" />
+                <div className="flex items-start justify-between mb-4 flex-col sm:flex-row gap-3">
+                  <div className="flex items-start gap-3 sm:gap-4 w-full">
+                    <div className="p-2 sm:p-3 bg-red-100 rounded-lg flex-shrink-0">
+                      <Droplets className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
                     </div>
-                    <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold text-zinc-900">{request.bloodGroup}</h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(request.status)}`}>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <h3 className="text-lg sm:text-xl font-bold text-zinc-900">{request.bloodGroup}</h3>
+                        <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap ${getStatusColor(request.status)}`}>
                           {request.status}
                         </span>
                         {request.urgency !== 'routine' && (
-                          <span className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
+                          <span className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium whitespace-nowrap ${
                             request.urgency === 'emergency' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
                           }`}>
                             {getUrgencyIcon(request.urgency)}
@@ -244,49 +245,49 @@ const HospitalRequestsPage = () => {
                           </span>
                         )}
                       </div>
-                      <p className="text-zinc-600">{request.quantity} units requested</p>
+                      <p className="text-sm sm:text-base text-zinc-600">{request.quantity} units requested</p>
                     </div>
                   </div>
                   {request.status === 'pending' && (
                     <button
                       onClick={() => handleCancel(request._id)}
-                      className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors self-start sm:self-auto whitespace-nowrap"
                     >
                       Cancel
                     </button>
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div className="flex items-center gap-2 text-sm text-zinc-600">
-                    <Calendar className="h-4 w-4" />
-                    <span>Requested: {new Date(request.requestDate).toLocaleDateString()}</span>
+                <div className="grid grid-cols-1 gap-3 mb-4">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-zinc-600">
+                    <Calendar className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">Requested: {new Date(request.requestDate).toLocaleDateString()}</span>
                   </div>
                   {request.requiredBy && (
-                    <div className="flex items-center gap-2 text-sm text-zinc-600">
-                      <Clock className="h-4 w-4" />
-                      <span>Needed by: {new Date(request.requiredBy).toLocaleDateString()}</span>
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-zinc-600">
+                      <Clock className="h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">Needed by: {new Date(request.requiredBy).toLocaleDateString()}</span>
                     </div>
                   )}
                 </div>
 
                 <div className="space-y-3">
                   <div>
-                    <p className="text-sm font-medium text-zinc-700 mb-1">Reason:</p>
-                    <p className="text-sm text-zinc-600">{request.reason}</p>
+                    <p className="text-xs sm:text-sm font-medium text-zinc-700 mb-1">Reason:</p>
+                    <p className="text-xs sm:text-sm text-zinc-600 break-words">{request.reason}</p>
                   </div>
 
                   {request.patientDetails && (
                     <div>
-                      <p className="text-sm font-medium text-zinc-700 mb-1">Patient Details:</p>
-                      <p className="text-sm text-zinc-600">{request.patientDetails}</p>
+                      <p className="text-xs sm:text-sm font-medium text-zinc-700 mb-1">Patient Details:</p>
+                      <p className="text-xs sm:text-sm text-zinc-600 break-words">{request.patientDetails}</p>
                     </div>
                   )}
 
                   {request.adminNotes && (
                     <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-sm font-medium text-blue-900 mb-1">Admin Note:</p>
-                      <p className="text-sm text-blue-700">{request.adminNotes}</p>
+                      <p className="text-xs sm:text-sm font-medium text-blue-900 mb-1">Admin Note:</p>
+                      <p className="text-xs sm:text-sm text-blue-700 break-words">{request.adminNotes}</p>
                     </div>
                   )}
 
@@ -305,10 +306,10 @@ const HospitalRequestsPage = () => {
 
       {/* Create Request Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full overflow-hidden shadow-xl border border-zinc-200">
-            <div className="px-6 py-4 border-b border-zinc-200 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-zinc-900">Create Blood Request</h2>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg max-w-2xl w-full overflow-hidden shadow-xl border border-zinc-200 my-8">
+            <div className="px-4 sm:px-6 py-4 border-b border-zinc-200 flex items-center justify-between">
+              <h2 className="text-lg sm:text-xl font-semibold text-zinc-900">Create Blood Request</h2>
               <button 
                 onClick={() => setShowModal(false)}
                 className="text-zinc-400 hover:text-zinc-600 p-1 rounded-lg hover:bg-zinc-100 transition-colors"
@@ -317,14 +318,14 @@ const HospitalRequestsPage = () => {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
               {error && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                   {error}
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-zinc-700 mb-1.5">
                     Blood Group *
@@ -332,7 +333,7 @@ const HospitalRequestsPage = () => {
                   <select
                     value={formData.bloodGroup}
                     onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
-                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                     required
                   >
                     <option value="">Select Blood Group</option>
@@ -351,13 +352,13 @@ const HospitalRequestsPage = () => {
                     min="1"
                     value={formData.quantity}
                     onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                     required
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-zinc-700 mb-1.5">
                     Urgency *
@@ -365,7 +366,7 @@ const HospitalRequestsPage = () => {
                   <select
                     value={formData.urgency}
                     onChange={(e) => setFormData({ ...formData, urgency: e.target.value })}
-                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                     required
                   >
                     <option value="routine">Routine</option>
@@ -383,7 +384,7 @@ const HospitalRequestsPage = () => {
                     value={formData.requiredBy}
                     onChange={(e) => setFormData({ ...formData, requiredBy: e.target.value })}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                   />
                 </div>
               </div>
