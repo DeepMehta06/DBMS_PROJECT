@@ -108,7 +108,7 @@ const HOST = process.env.HOST || '0.0.0.0'; // Bind to 0.0.0.0 for Render
 
 const server = app.listen(PORT, HOST, () => {
   console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on ${HOST}:${PORT}`);
-  console.log(`📍 CORS enabled for: ${corsOptions.origin.join(', ')}`);
+  console.log(`📍 CORS enabled for: http://localhost:3000, http://localhost:5173, https://bbmanagement.netlify.app`);
 });
 
 // Handle unhandled promise rejections
