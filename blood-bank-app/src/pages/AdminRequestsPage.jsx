@@ -270,12 +270,12 @@ const AdminRequestsPage = () => {
                   <div className="bg-blue-100 p-3 rounded-lg flex-shrink-0">
                     <Building2 className="w-6 h-6 text-blue-600" />
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <h3 className="font-semibold text-lg text-gray-900 break-words">
                       {request.hospitalName}
                     </h3>
-                    <p className="text-sm text-gray-600 truncate">
-                      Request ID: {request._id}
+                    <p className="text-sm text-gray-600 break-all">
+                      ID: {request._id.slice(-8)}
                     </p>
                   </div>
                 </div>
