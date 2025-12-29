@@ -4,13 +4,13 @@ import { LayoutDashboard, Droplets, Users, Heart, Building2, MessageSquare, Pack
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const navItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Inventory', path: '/inventory', icon: Droplets },
-    { name: 'Donors', path: '/donors', icon: Users },
-    { name: 'Recipients', path: '/recipients', icon: Heart },
-    { name: 'Hospitals', path: '/hospitals', icon: Building2 },
-    { name: 'Hospital Chats', path: '/chat', icon: MessageSquare },
-    { name: 'Blood Requests', path: '/requests', icon: Package },
+    { name: 'Dashboard', path: '/app/dashboard', icon: LayoutDashboard },
+    { name: 'Inventory', path: '/app/inventory', icon: Droplets },
+    { name: 'Donors', path: '/app/donors', icon: Users },
+    { name: 'Recipients', path: '/app/recipients', icon: Heart },
+    { name: 'Hospitals', path: '/app/hospitals', icon: Building2 },
+    { name: 'Hospital Chats', path: '/app/chat', icon: MessageSquare },
+    { name: 'Blood Requests', path: '/app/requests', icon: Package },
   ];
 
   return (

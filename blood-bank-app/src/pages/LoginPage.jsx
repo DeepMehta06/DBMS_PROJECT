@@ -21,7 +21,7 @@ const LoginPage = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (isLoggedIn) {
-      navigate('/dashboard');
+      navigate('/app/dashboard');
     }
     if (isHospitalLoggedIn) {
       navigate('/hospital/dashboard');
@@ -40,7 +40,7 @@ const LoginPage = () => {
         
         if (result.success) {
           success('Login successful', 'Welcome back to Blood Bank Management System');
-          navigate('/dashboard');
+          navigate('/app/dashboard');
         } else {
           setError(result.error || 'Login failed. Please try again.');
           showError('Login failed', result.error || 'Invalid email or password');

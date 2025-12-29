@@ -5,6 +5,7 @@ import { HospitalAuthProvider } from './context/HospitalAuthContext';
 import { ToastProvider } from './context/ToastContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './Layout';
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import InventoryPage from './pages/InventoryPage';
@@ -39,6 +40,9 @@ function App() {
         <ToastProvider>
           <Router>
             <Routes>
+              {/* Landing Page - Public */}
+              <Route path="/" element={<LandingPage />} />
+              
               {/* Login Route - No Layout */}
               <Route path="/login" element={<LoginPage />} />
               
@@ -54,14 +58,14 @@ function App() {
               
               {/* Protected Routes - With Layout */}
               <Route 
-                path="/" 
+                path="/app" 
                 element={
                   <ProtectedRoute>
                     <Layout />
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<Navigate to="/dashboard" replace />} />
+                <Route index element={<Navigate to="/app/dashboard" replace />} />
                 <Route path="dashboard" element={<DashboardPage />} />
                 <Route path="inventory" element={<InventoryPage />} />
                 <Route path="donors" element={<DonorsPage />} />
@@ -70,6 +74,15 @@ function App() {
                 <Route path="chat" element={<AdminChatPage />} />
                 <Route path="requests" element={<AdminRequestsPage />} />
               </Route>
+              
+              {/* Redirect old routes to new /app prefix */}
+              <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
+              <Route path="/inventory" element={<Navigate to="/app/inventory" replace />} />
+              <Route path="/donors" element={<Navigate to="/app/donors" replace />} />
+              <Route path="/recipients" element={<Navigate to="/app/recipients" replace />} />
+              <Route path="/hospitals" element={<Navigate to="/app/hospitals" replace />} />
+              <Route path="/chat" element={<Navigate to="/app/chat" replace />} />
+              <Route path="/requests" element={<Navigate to="/app/requests" replace />} />
             </Routes>
           </Router>
         </ToastProvider>
